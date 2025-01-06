@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@azure/openai": "^2.0.0",
+    "axios": "^1.7.9",
+    "openai": "^4.77.0"
+  }
+}
