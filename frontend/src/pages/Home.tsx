@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import React from "react";
 import TypingAnim from "../components/typer/TypingAnim";

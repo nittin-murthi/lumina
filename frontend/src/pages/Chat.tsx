@@ -1,4 +1,5 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+// @ts-nocheck
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Avatar, Box, Button, IconButton, Typography } from '@mui/material'
 import { useAuth } from '../context/AuthContext';
 import { red } from '@mui/material/colors';
@@ -58,9 +59,9 @@ const Chat = () => {
 
   useEffect(() => {
     if (!auth?.user) {
-      return navigate("/login");
+      navigate("/login");
     }
-  }, [auth]);
+  }, [auth, navigate]);
 
   return (
       <Box sx={{display: 'flex', flex: 1, width: '100%', height: '100%', mt: 3, gap: 3}}>

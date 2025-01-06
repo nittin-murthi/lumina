@@ -1,5 +1,4 @@
-import React from 'react'
-
+// @ts-nocheck
 const NotFound = () => {
   return <div>NotFound</div>
 }

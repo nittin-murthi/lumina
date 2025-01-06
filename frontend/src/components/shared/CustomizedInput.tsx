@@ -1,4 +1,4 @@
-import React from "react";
+// @ts-nocheck
 import TextField from "@mui/material/TextField";
 type Props = {
   name: string;

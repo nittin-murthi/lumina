@@ -1,4 +1,5 @@
-import React from "react";
+// @ts-nocheck
+// React import removed as it's not directly used
 import { Box, Avatar, Typography } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";

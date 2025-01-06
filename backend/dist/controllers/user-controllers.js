@@ -2,14 +2,6 @@ import User from "../models/User.js";
 import { hash, compare } from 'bcrypt';
 import { createToken } from "../utils/token-manager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
-
-const cookieOptions = {
-    httpOnly: true,
-    domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
-    signed: true,
-    path: "/"
-};
-
 export const userSignup = async (req, res, next) => {
     try {
         //user signup
@@ -20,18 +12,23 @@ export const userSignup = async (req, res, next) => {
         const hashedPassword = await hash(password, 10);
         const user = new User({ name, email, password: hashedPassword });
         await user.save();
-
         // create token and store cookie
-        res.clearCookie(COOKIE_NAME, cookieOptions);
-
+        res.clearCookie(COOKIE_NAME, {
+            httpOnly: true,
+            domain: "localhost",
+            signed: true,
+            path: "/",
+        });
         const token = createToken(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
         res.cookie(COOKIE_NAME, token, {
-            ...cookieOptions,
-            expires
+            path: "/",
+            domain: "localhost",
+            expires,
+            httpOnly: true,
+            signed: true,
         });
-
         return res
             .status(201)
             .json({ message: "OK", name: user.name, email: user.email });
@@ -41,7 +38,6 @@ export const userSignup = async (req, res, next) => {
         return res.status(200).json({ message: "ERROR", cause: error.message });
     }
 };
-
 export const userLogin = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -53,18 +49,12 @@ export const userLogin = async (req, res, next) => {
         if (!isPasswordCorrect) {
             return res.status(403).send("Password and/or Email is incorrect");
         }
-
-        res.clearCookie(COOKIE_NAME, cookieOptions);
-        
+        res.clearCookie("auth_token", { httpOnly: true, domain: "localhost", signed: true, path: "/" });
         const token = createToken(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
-        
-        res.cookie(COOKIE_NAME, token, {
-            ...cookieOptions,
-            expires
-        });
-
+        //Change localhost to your domain
+        res.cookie(COOKIE_NAME, token, { path: "/", domain: "localhost", expires, httpOnly: true, signed: true, });
         return res.status(200).json({ message: "Successful", name: user.name, email: user.email });
     }
     catch (error) {
@@ -72,7 +62,6 @@ export const userLogin = async (req, res, next) => {
         return res.status(200).json({ message: "ERROR", cause: error.message });
     }
 };
-
 export const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find();
@@ -83,7 +72,6 @@ export const getAllUsers = async (req, res, next) => {
         return res.status(200).json({ message: "ERROR", cause: error.message });
     }
 };
-
 export const verifyUser = async (req, res, next) => {
     try {
         //user token check
@@ -103,7 +91,6 @@ export const verifyUser = async (req, res, next) => {
         return res.status(200).json({ message: "ERROR", cause: error.message });
     }
 };
-
 export const userLogout = async (req, res, next) => {
     try {
         //user token check
@@ -114,9 +101,12 @@ export const userLogout = async (req, res, next) => {
         if (user._id.toString() !== res.locals.jwtData.id) {
             return res.status(401).send("Permissions didn't match");
         }
-
-        res.clearCookie(COOKIE_NAME, cookieOptions);
-
+        res.clearCookie(COOKIE_NAME, {
+            httpOnly: true,
+            domain: "localhost",
+            signed: true,
+            path: "/",
+        });
         return res
             .status(200)
             .json({ message: "OK", name: user.name, email: user.email });

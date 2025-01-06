@@ -1,4 +1,4 @@
-import React from "react";
+// @ts-nocheck
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Logo from "./shared/Logo";

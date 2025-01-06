@@ -4,12 +4,38 @@ import morgan from "morgan";
 import appRouter from "./routes/index.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 config();
 const app = express();
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+console.log('Current NODE_ENV:', process.env.NODE_ENV);
+console.log('Current directory:', __dirname);
+app.use(cors({
+    origin: ["http://localhost:5001", "http://localhost:5173"],
+    credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(morgan("dev"));
+// API routes
 app.use("/api/v1", appRouter);
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+    // Serve static files from frontend build directory
+    const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+    console.log('Frontend build path:', frontendBuildPath);
+    console.log('Does path exist?', existsSync(frontendBuildPath));
+    app.use(express.static(frontendBuildPath));
+    // Handle client-side routing by serving index.html for all non-API routes
+    app.get('*', (req, res) => {
+        const indexPath = path.join(frontendBuildPath, 'index.html');
+        console.log('Trying to serve index.html from:', indexPath);
+        console.log('Does index.html exist?', existsSync(indexPath));
+        res.sendFile(indexPath);
+    });
+}
 export default app;
 //# sourceMappingURL=app.js.map
