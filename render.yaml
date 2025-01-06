@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: lumina-backend
+    env: node
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: NODE_ENV
+        value: production 
