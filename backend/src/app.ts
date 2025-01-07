@@ -15,10 +15,25 @@ const projectRoot = path.resolve(process.cwd(), '..');
 
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
 console.log('Current directory:', projectRoot);
+
+// Define allowed origins
+const allowedOrigins = [
+  'http://localhost:5001',
+  'http://localhost:5173',
+  'https://lumina-1.onrender.com'
+];
+
 app.use(cors({ 
-    origin: process.env.NODE_ENV === "production" 
-        ? [process.env.FRONTEND_URL || "", "https://lumina-1.onrender.com"]
-        : ["http://localhost:5001", "http://localhost:5173"],
+    origin: function(origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if(!origin) return callback(null, true);
+        
+        if(allowedOrigins.indexOf(origin) === -1){
+            var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     credentials: true 
 }));
 

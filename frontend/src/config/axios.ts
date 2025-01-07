@@ -1,8 +1,16 @@
 import axios from "axios";
 
+// Determine the base URL based on the current environment
+const getBaseUrl = () => {
+  const isProd = window.location.hostname !== 'localhost';
+  return isProd 
+    ? 'https://lumina-1.onrender.com/api/v1'
+    : 'http://localhost:5001/api/v1';
+};
+
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: getBaseUrl(),
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
