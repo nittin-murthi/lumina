@@ -23,9 +23,11 @@ export const userSignup = async (
       // create token and store cookie
       res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
-        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+        domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
         signed: true,
         path: "/",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
       });
   
       const token = createToken(user._id.toString(), user.email, "7d");
@@ -33,7 +35,7 @@ export const userSignup = async (
       expires.setDate(expires.getDate() + 7);
       res.cookie(COOKIE_NAME, token, {
         path: "/",
-        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+        domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
         expires,
         httpOnly: true,
         signed: true,
@@ -69,9 +71,11 @@ export const userLogin = async (
 
         res.clearCookie(COOKIE_NAME, {
           httpOnly: true,
-          domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+          domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
           signed: true,
           path: "/",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          secure: process.env.NODE_ENV === "production",
         });
 
         const token = createToken(user._id.toString(), user.email, "7d");
@@ -82,7 +86,7 @@ export const userLogin = async (
 
         res.cookie(COOKIE_NAME, token, {
           path: "/",
-          domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+          domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
           expires,
           httpOnly: true,
           signed: true,
@@ -151,7 +155,7 @@ export const verifyUser = async (
   
       res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
-        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+        domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
         signed: true,
         path: "/",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",

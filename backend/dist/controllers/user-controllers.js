@@ -21,19 +21,23 @@ const userSignup = async (req, res, next) => {
         // create token and store cookie
         res.clearCookie(constants_js_1.COOKIE_NAME, {
             httpOnly: true,
-            domain: "localhost",
+            domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
             signed: true,
             path: "/",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
         });
         const token = (0, token_manager_js_1.createToken)(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
         res.cookie(constants_js_1.COOKIE_NAME, token, {
             path: "/",
-            domain: "localhost",
+            domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
             expires,
             httpOnly: true,
             signed: true,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
         });
         return res
             .status(201)
@@ -56,12 +60,26 @@ const userLogin = async (req, res, next) => {
         if (!isPasswordCorrect) {
             return res.status(403).send("Password and/or Email is incorrect");
         }
-        res.clearCookie("auth_token", { httpOnly: true, domain: "localhost", signed: true, path: "/" });
+        res.clearCookie(constants_js_1.COOKIE_NAME, {
+            httpOnly: true,
+            domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
+            signed: true,
+            path: "/",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
+        });
         const token = (0, token_manager_js_1.createToken)(user._id.toString(), user.email, "7d");
         const expires = new Date();
         expires.setDate(expires.getDate() + 7);
-        //Change localhost to your domain
-        res.cookie(constants_js_1.COOKIE_NAME, token, { path: "/", domain: "localhost", expires, httpOnly: true, signed: true, });
+        res.cookie(constants_js_1.COOKIE_NAME, token, {
+            path: "/",
+            domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
+            expires,
+            httpOnly: true,
+            signed: true,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
+        });
         return res.status(200).json({ message: "Successful", name: user.name, email: user.email });
     }
     catch (error) {
@@ -113,9 +131,11 @@ const userLogout = async (req, res, next) => {
         }
         res.clearCookie(constants_js_1.COOKIE_NAME, {
             httpOnly: true,
-            domain: "localhost",
+            domain: process.env.NODE_ENV === "production" ? "lumina-1.onrender.com" : "localhost",
             signed: true,
             path: "/",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            secure: process.env.NODE_ENV === "production",
         });
         return res
             .status(200)

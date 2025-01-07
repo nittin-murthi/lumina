@@ -34,8 +34,13 @@ app.use(cors({
         }
         return callback(null, true);
     },
-    credentials: true 
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
+
+// Enable pre-flight requests for all routes
+app.options('*', cors());
 
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));

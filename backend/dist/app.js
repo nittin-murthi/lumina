@@ -33,8 +33,12 @@ app.use((0, cors_1.default)({
         }
         return callback(null, true);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
+// Enable pre-flight requests for all routes
+app.options('*', (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)(process.env.COOKIE_SECRET));
 app.use((0, morgan_1.default)("dev"));
