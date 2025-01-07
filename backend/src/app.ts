@@ -5,18 +5,21 @@ import appRouter from "./routes/index.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 
 config();
 const app = express();
-const __dirname = path.resolve();
+
+// Get the project root directory
+const projectRoot = path.resolve(process.cwd());
 
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
-console.log('Current directory:', __dirname);
+console.log('Current directory:', projectRoot);
 
 app.use(cors({ 
-    origin: ["http://localhost:5001", "http://localhost:5173"],
+    origin: process.env.NODE_ENV === "production" 
+        ? [process.env.FRONTEND_URL || ""] 
+        : ["http://localhost:5001", "http://localhost:5173"],
     credentials: true 
 }));
 
@@ -30,7 +33,7 @@ app.use("/api/v1", appRouter);
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
     // Serve static files from frontend build directory
-    const frontendBuildPath = path.join(__dirname, '../../frontend/dist');
+    const frontendBuildPath = path.join(projectRoot, '../../frontend/dist');
     console.log('Frontend build path:', frontendBuildPath);
     console.log('Does path exist?', existsSync(frontendBuildPath));
     
