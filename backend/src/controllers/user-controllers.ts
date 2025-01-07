@@ -23,7 +23,7 @@ export const userSignup = async (
       // create token and store cookie
       res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
-        domain: "localhost",
+        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
         signed: true,
         path: "/",
       });
@@ -33,10 +33,12 @@ export const userSignup = async (
       expires.setDate(expires.getDate() + 7);
       res.cookie(COOKIE_NAME, token, {
         path: "/",
-        domain: "localhost",
+        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
         expires,
         httpOnly: true,
         signed: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
       });
   
       return res
@@ -65,7 +67,12 @@ export const userLogin = async (
             return res.status(403).send("Password and/or Email is incorrect");
         }
 
-        res.clearCookie("auth_token", {httpOnly: true, domain: "localhost", signed: true, path: "/"});
+        res.clearCookie(COOKIE_NAME, {
+          httpOnly: true,
+          domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+          signed: true,
+          path: "/",
+        });
 
         const token = createToken(user._id.toString(), user.email, "7d");
 
@@ -73,8 +80,15 @@ export const userLogin = async (
 
         expires.setDate(expires.getDate() + 7);
 
-        //Change localhost to your domain
-        res.cookie(COOKIE_NAME, token, {path: "/", domain: "localhost", expires, httpOnly: true, signed: true,});
+        res.cookie(COOKIE_NAME, token, {
+          path: "/",
+          domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
+          expires,
+          httpOnly: true,
+          signed: true,
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
 
         return res.status(200).json({ message: "Successful", name: user.name, email: user.email });
     } catch (error) {
@@ -137,9 +151,11 @@ export const verifyUser = async (
   
       res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
-        domain: "localhost",
+        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : "localhost",
         signed: true,
         path: "/",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
       });
   
       return res
