@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Your project description",
   "main": "backend/dist/index.js",
-  "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && nodemon --exec ts-node src/index.ts",
