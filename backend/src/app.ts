@@ -15,10 +15,9 @@ const projectRoot = path.resolve(process.cwd(), '..');
 
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
 console.log('Current directory:', projectRoot);
-
 app.use(cors({ 
     origin: process.env.NODE_ENV === "production" 
-        ? [process.env.FRONTEND_URL || ""] 
+        ? [process.env.FRONTEND_URL || "", "https://lumina-1.onrender.com"]
         : ["http://localhost:5001", "http://localhost:5173"],
     credentials: true 
 }));
