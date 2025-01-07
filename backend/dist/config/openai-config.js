@@ -1,4 +1,7 @@
-import { AzureOpenAI } from "openai";
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.main = main;
+const openai_1 = require("openai");
 // import type {
 //   ChatCompletion,
 //   ChatCompletionCreateParamsNonStreaming,
@@ -8,7 +11,7 @@ const apiKey = "a3babad21aee482798891f0e56f538f4";
 const apiVersion = "2024-02-15-preview";
 const deploymentName = "gpt4-o";
 function getClient() {
-    return new AzureOpenAI({
+    return new openai_1.AzureOpenAI({
         endpoint,
         apiKey,
         apiVersion,
@@ -37,7 +40,7 @@ async function printChoices(completion) {
         console.log(choice.message);
     }
 }
-export async function main() {
+async function main() {
     const client = getClient();
     const messages = createMessages();
     const result = await client.chat.completions.create(messages);

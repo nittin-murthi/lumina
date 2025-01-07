@@ -10,8 +10,8 @@ import { existsSync } from 'fs';
 config();
 const app = express();
 
-// Get the project root directory
-const projectRoot = path.resolve(process.cwd());
+// Get the project root directory - going up one level from backend to reach project root
+const projectRoot = path.resolve(process.cwd(), '..');
 
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
 console.log('Current directory:', projectRoot);

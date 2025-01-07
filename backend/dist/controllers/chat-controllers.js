@@ -1,12 +1,18 @@
-import User from "../models/User.js";
-import { AzureOpenAI } from "openai";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteChats = exports.sendChatsToUser = exports.generateChatCompletion = void 0;
+const User_js_1 = __importDefault(require("../models/User.js"));
+const openai_1 = require("openai");
 const endpoint = "https://invite-instance-openai.openai.azure.com";
 const apiKey = "a3babad21aee482798891f0e56f538f4";
 const apiVersion = "2024-02-15-preview";
 const deploymentName = "gpt4-o";
 // Helper function to get the Azure OpenAI client
 function getAzureClient() {
-    return new AzureOpenAI({
+    return new openai_1.AzureOpenAI({
         endpoint,
         apiKey,
         apiVersion,
@@ -14,10 +20,10 @@ function getAzureClient() {
     });
 }
 // Controller for generating chat completions
-export const generateChatCompletion = async (req, res, next) => {
+const generateChatCompletion = async (req, res, next) => {
     const { message } = req.body;
     try {
-        const user = await User.findById(res.locals.jwtData.id);
+        const user = await User_js_1.default.findById(res.locals.jwtData.id);
         if (!user)
             return res
                 .status(401)
@@ -50,10 +56,11 @@ export const generateChatCompletion = async (req, res, next) => {
         return res.status(500).json({ message: "Something went wrong" });
     }
 };
+exports.generateChatCompletion = generateChatCompletion;
 // Controller for sending chats to the user
-export const sendChatsToUser = async (req, res, next) => {
+const sendChatsToUser = async (req, res, next) => {
     try {
-        const user = await User.findById(res.locals.jwtData.id);
+        const user = await User_js_1.default.findById(res.locals.jwtData.id);
         if (!user) {
             return res.status(401).send("User not registered OR Token malfunctioned");
         }
@@ -67,10 +74,11 @@ export const sendChatsToUser = async (req, res, next) => {
         return res.status(500).json({ message: "Something went wrong", cause: error.message });
     }
 };
+exports.sendChatsToUser = sendChatsToUser;
 // Controller for deleting chats
-export const deleteChats = async (req, res, next) => {
+const deleteChats = async (req, res, next) => {
     try {
-        const user = await User.findById(res.locals.jwtData.id);
+        const user = await User_js_1.default.findById(res.locals.jwtData.id);
         if (!user) {
             return res.status(401).send("User not registered OR Token malfunctioned");
         }
@@ -86,4 +94,5 @@ export const deleteChats = async (req, res, next) => {
         return res.status(500).json({ message: "Something went wrong", cause: error.message });
     }
 };
+exports.deleteChats = deleteChats;
 //# sourceMappingURL=chat-controllers.js.map
