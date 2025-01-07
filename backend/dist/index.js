@@ -3,7 +3,7 @@ import { connectToDatabase } from "./db/connection.js";
 import { config } from "dotenv";
 // Load environment variables
 config();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001;
 connectToDatabase()
     .then(() => {
     app.listen(PORT, () => console.log("Server and database is running on port " + PORT));

@@ -9,10 +9,8 @@ import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 
 config();
-
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.resolve();
 
 console.log('Current NODE_ENV:', process.env.NODE_ENV);
 console.log('Current directory:', __dirname);

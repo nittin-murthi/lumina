@@ -1,11 +1,11 @@
-import app from "./app.js";
-import { connectToDatabase } from "./db/connection.js"
 import { config } from "dotenv";
+import app from "./app";
+import { connectToDatabase } from "./db/connection";
 
 // Load environment variables
 config();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5001;
 
 connectToDatabase()
     .then(() => {
