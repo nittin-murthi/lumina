@@ -48,17 +48,11 @@ app.use("/api/v1", appRouter);
 if (process.env.NODE_ENV === "production") {
     // Serve static files from frontend build directory
     const frontendBuildPath = path.join(projectRoot, 'frontend/dist');
-    console.log('Frontend build path:', frontendBuildPath);
-    console.log('Does path exist?', existsSync(frontendBuildPath));
-    
     app.use(express.static(frontendBuildPath));
-
-    // Handle client-side routing by serving index.html for all non-API routes
+    
+    // Handle all other routes by serving the index.html
     app.get('*', (req, res) => {
-        const indexPath = path.join(frontendBuildPath, 'index.html');
-        console.log('Trying to serve index.html from:', indexPath);
-        console.log('Does index.html exist?', existsSync(indexPath));
-        res.sendFile(indexPath);
+        res.sendFile(path.join(frontendBuildPath, 'index.html'));
     });
 }
 

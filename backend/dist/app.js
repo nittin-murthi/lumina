@@ -10,7 +10,6 @@ const index_1 = __importDefault(require("./routes/index"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
-const fs_1 = require("fs");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
 // Get the project root directory - going up one level from backend to reach project root
@@ -45,15 +44,10 @@ app.use("/api/v1", index_1.default);
 if (process.env.NODE_ENV === "production") {
     // Serve static files from frontend build directory
     const frontendBuildPath = path_1.default.join(projectRoot, 'frontend/dist');
-    console.log('Frontend build path:', frontendBuildPath);
-    console.log('Does path exist?', (0, fs_1.existsSync)(frontendBuildPath));
     app.use(express_1.default.static(frontendBuildPath));
-    // Handle client-side routing by serving index.html for all non-API routes
+    // Handle all other routes by serving the index.html
     app.get('*', (req, res) => {
-        const indexPath = path_1.default.join(frontendBuildPath, 'index.html');
-        console.log('Trying to serve index.html from:', indexPath);
-        console.log('Does index.html exist?', (0, fs_1.existsSync)(indexPath));
-        res.sendFile(indexPath);
+        res.sendFile(path_1.default.join(frontendBuildPath, 'index.html'));
     });
 }
 exports.default = app;

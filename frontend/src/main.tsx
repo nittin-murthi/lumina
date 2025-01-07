@@ -10,7 +10,10 @@ import { Toaster } from 'react-hot-toast'
 
 import axios from 'axios'
 
-axios.defaults.baseURL = 'http://localhost:5001/api/v1'
+// Set baseURL based on environment
+axios.defaults.baseURL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5001/api/v1'
+  : '/api/v1';
 axios.defaults.withCredentials = true
 
 const theme = createTheme({
