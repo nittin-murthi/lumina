@@ -6,7 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const crypto_1 = require("crypto");
 const chatSchema = new mongoose_1.default.Schema({
-    id: { type: String,
+    id: {
+        type: String,
         default: (0, crypto_1.randomUUID)(),
     },
     role: {
@@ -14,7 +15,7 @@ const chatSchema = new mongoose_1.default.Schema({
         required: true,
     },
     content: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.Mixed,
         required: true,
     },
 });

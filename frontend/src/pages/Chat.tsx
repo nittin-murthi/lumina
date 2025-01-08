@@ -5,29 +5,68 @@ import { useAuth } from '../context/AuthContext';
 import { red } from '@mui/material/colors';
 import ChatItem from '../components/chat/ChatItem';
 import { IoMdSend } from 'react-icons/io';
+import { MdAddPhotoAlternate } from 'react-icons/md';
 import { deleteUserChats, getUserChats, sendChatRequest } from '../helpers/api-communicator';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Message = {
   role: "user" | "assistant";
   content: string;
+  image?: {
+    url: string;
+    data?: File;
+  };
 };
 
 const Chat = () => {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const auth = useAuth();
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async () => {
     const content = inputRef.current?.value as string;
+    if (!content && !selectedImage) return;
+
     if (inputRef && inputRef.current) {
       inputRef.current.value = "";
     }
-    const newMessage: Message = { role: "user", content: content };
+
+    const newMessage: Message = { 
+      role: "user", 
+      content: content || "",
+      ...(selectedImage && { image: { url: imagePreview!, data: selectedImage } })
+    };
+
     setChatMessages((prev) => [...prev, newMessage]);
-    const chatData = await sendChatRequest(content);
-    setChatMessages([...chatData.chats]);
+    
+    try {
+      const chatData = await sendChatRequest(content || "", selectedImage);
+      setChatMessages([...chatData.chats]);
+      // Clear image after sending
+      setSelectedImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    }
   };
 
   const handleDeleteChats = async () => {
@@ -96,20 +135,110 @@ const Chat = () => {
           </Typography>
           <Box sx={{ width: "100%", height: "60vh", borderRadius: 5, mx: 'auto', display: 'flex', flexDirection: 'column', overflow: 'scroll', overflowX: 'hidden', scrollBehavior: 'smooth'}}>
             {chatMessages.map((chat, index) => (
-              <ChatItem content={chat.content} role={chat.role as "assistant" | "user"} key={index}/>
+              <ChatItem content={chat.content} role={chat.role as "assistant" | "user"} image={chat.image} key={index}/>
             ))}
           </Box>
+          {imagePreview && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Box 
+                  sx={{ 
+                    mt: 2, 
+                    position: 'relative', 
+                    width: 'fit-content',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <motion.img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    style={{ 
+                      maxWidth: '200px', 
+                      maxHeight: '200px', 
+                      display: 'block',
+                      objectFit: 'cover'
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <IconButton 
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                    }}
+                    sx={{ 
+                      position: 'absolute', 
+                      top: 8, 
+                      right: 8, 
+                      bgcolor: 'rgba(0,0,0,0.6)',
+                      color: 'white',
+                      padding: '4px',
+                      minWidth: '24px',
+                      minHeight: '24px',
+                      '&:hover': { 
+                        bgcolor: 'rgba(0,0,0,0.8)',
+                        transform: 'scale(1.1)'
+                      },
+                      transition: 'all 0.2s ease-in-out'
+                    }}
+                  >
+                    <motion.div
+                      whileHover={{ rotate: 90 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      ×
+                    </motion.div>
+                  </IconButton>
+                </Box>
+              </motion.div>
+            </AnimatePresence>
+          )}
           <div
-        style={{
-          width: "100%",
-          borderRadius: 8,
-          backgroundColor: "rgb(17,27,39)",
-          display: "flex",
-          margin: "auto",
-        }}
-      >
-        {" "}
-            <input ref={inputRef} type="text" style={{width: "100%", height: "50px", borderRadius: 5, border: "none", padding: "10px", marginTop: "10px", backgroundColor: "transparent", fontSize: "20px", color: "white"}} placeholder="Type your message here..." />
+            style={{
+              width: "100%",
+              borderRadius: 8,
+              backgroundColor: "rgb(17,27,39)",
+              display: "flex",
+              margin: "auto",
+              alignItems: "center",
+              padding: "10px",
+            }}
+          >
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleImageSelect}
+            />
+            <IconButton 
+              onClick={() => fileInputRef.current?.click()} 
+              sx={{ color: "white", mx: 1 }}
+            >
+              <MdAddPhotoAlternate />
+            </IconButton>
+            <input 
+              ref={inputRef} 
+              type="text" 
+              style={{
+                width: "100%",
+                height: "50px",
+                borderRadius: 5,
+                border: "none",
+                padding: "10px",
+                backgroundColor: "transparent",
+                fontSize: "20px",
+                color: "white"
+              }} 
+              placeholder="Type your message here..." 
+            />
             <IconButton onClick={handleSubmit} sx={{ color: "white", mx: 1 }}>
               <IoMdSend />
             </IconButton>

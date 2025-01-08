@@ -1,5 +1,4 @@
 // @ts-nocheck
-// React import removed as it's not directly used
 import { Box, Avatar, Typography } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -27,16 +26,79 @@ function isCodeBlock(str: string) {
   }
   return false;
 }
-const ChatItem = ({
-  content,
-  role,
-}: {
-  content: string;
+
+type ChatItemProps = {
+  content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
   role: "user" | "assistant";
-}) => {
-  const messageBlocks = extractCodeFromString(content);
+  image?: {
+    url: string;
+    data?: File;
+  };
+};
+
+const ChatItem = ({ content, role, image }: ChatItemProps) => {
+  const messageBlocks = typeof content === 'string' ? extractCodeFromString(content) : null;
   const auth = useAuth();
-  return role == "assistant" ? (
+
+  const renderContent = () => {
+    if (Array.isArray(content)) {
+      return content.map((item, index) => {
+        if (item.type === 'text') {
+          return <Typography key={index} sx={{ fontSize: "20px" }}>{item.text}</Typography>;
+        } else if (item.type === 'image_url') {
+          return (
+            <Box key={index} sx={{ mt: 2 }}>
+              <img 
+                src={item.image_url.url} 
+                alt="Content"
+                style={{ 
+                  maxWidth: '300px', 
+                  maxHeight: '300px', 
+                  borderRadius: '8px',
+                  objectFit: 'contain'
+                }} 
+              />
+            </Box>
+          );
+        }
+        return null;
+      });
+    }
+
+    if (!messageBlocks) {
+      return (
+        <>
+          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
+          {image && (
+            <Box sx={{ mt: 2 }}>
+              <img 
+                src={image.url} 
+                alt="Uploaded content"
+                style={{ 
+                  maxWidth: '300px', 
+                  maxHeight: '300px', 
+                  borderRadius: '8px',
+                  objectFit: 'contain'
+                }} 
+              />
+            </Box>
+          )}
+        </>
+      );
+    }
+
+    return messageBlocks.map((block, index) =>
+      isCodeBlock(block) ? (
+        <SyntaxHighlighter key={index} style={coldarkDark} language="javascript">
+          {block}
+        </SyntaxHighlighter>
+      ) : (
+        <Typography key={index} sx={{ fontSize: "20px" }}>{block}</Typography>
+      )
+    );
+  };
+
+  return role === "assistant" ? (
     <Box
       sx={{
         display: "flex",
@@ -51,20 +113,7 @@ const ChatItem = ({
         <img src="pngtree-shine-idea-lightbulb-in-yellow-and-gray-color-png-image_6579931.png" alt="openai" width={"30px"} />
       </Avatar>
       <Box>
-        {!messageBlocks && (
-          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
-        )}
-        {messageBlocks &&
-          messageBlocks.length &&
-          messageBlocks.map((block) =>
-            isCodeBlock(block) ? (
-              <SyntaxHighlighter style={coldarkDark} language="javascript">
-                {block}
-              </SyntaxHighlighter>
-            ) : (
-              <Typography sx={{ fontSize: "20px" }}>{block}</Typography>
-            )
-          )}
+        {renderContent()}
       </Box>
     </Box>
   ) : (
@@ -82,20 +131,7 @@ const ChatItem = ({
         {auth?.user?.name[0]}
       </Avatar>
       <Box>
-        {!messageBlocks && (
-          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
-        )}
-        {messageBlocks &&
-          messageBlocks.length &&
-          messageBlocks.map((block) =>
-            isCodeBlock(block) ? (
-              <SyntaxHighlighter style={coldarkDark} language="javascript">
-                {block}
-              </SyntaxHighlighter>
-            ) : (
-              <Typography sx={{ fontSize: "20px" }}>{block}</Typography>
-            )
-          )}
+        {renderContent()}
       </Box>
     </Box>
   );

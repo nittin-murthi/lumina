@@ -31,8 +31,17 @@ export const checkAuthStatus = async () => {
   return data;
 };
 
-export const sendChatRequest = async (message: string) => {
-  const res = await axios.post("/chat/new", { message });
+export const sendChatRequest = async (message: string, image?: File) => {
+  const formData = new FormData();
+  formData.append('message', message);
+  if (image) {
+    formData.append('image', image);
+  }
+  const res = await axios.post("/chat/new", formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
   if (res.status !== 200) {
     throw new Error("Unable to send chat");
   }

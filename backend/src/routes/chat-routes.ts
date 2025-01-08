@@ -5,14 +5,16 @@ import {
   deleteChats,
   generateChatCompletion,
   sendChatsToUser,
+  upload
 } from "../controllers/chat-controllers.js";
 
 //Protected API
 const chatRoutes = Router();
 chatRoutes.post(
   "/new",
-  validate(chatCompletionValidator),
   verifyToken,
+  upload.single('image'),
+  validate(chatCompletionValidator),
   generateChatCompletion
 );
 chatRoutes.get("/all-chats", verifyToken, sendChatsToUser);

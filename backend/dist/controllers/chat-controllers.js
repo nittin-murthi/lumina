@@ -3,13 +3,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteChats = exports.sendChatsToUser = exports.generateChatCompletion = void 0;
+exports.deleteChats = exports.sendChatsToUser = exports.generateChatCompletion = exports.upload = void 0;
 const User_js_1 = __importDefault(require("../models/User.js"));
 const openai_1 = require("openai");
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const endpoint = "https://invite-instance-openai.openai.azure.com";
 const apiKey = "a3babad21aee482798891f0e56f538f4";
 const apiVersion = "2024-02-15-preview";
 const deploymentName = "gpt4-o";
+// Configure multer for image uploads
+const storage = multer_1.default.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/';
+        if (!fs_1.default.existsSync(uploadDir)) {
+            fs_1.default.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path_1.default.extname(file.originalname));
+    }
+});
+exports.upload = (0, multer_1.default)({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
 // Helper function to get the Azure OpenAI client
 function getAzureClient() {
     return new openai_1.AzureOpenAI({
@@ -22,24 +44,61 @@ function getAzureClient() {
 // Controller for generating chat completions
 const generateChatCompletion = async (req, res, next) => {
     const { message } = req.body;
+    const imageFile = req.file;
     try {
         const user = await User_js_1.default.findById(res.locals.jwtData.id);
         if (!user)
             return res
                 .status(401)
                 .json({ message: "User not registered OR Token malfunctioned" });
-        // Retrieve user's chat history
+        // Prepare the message content
+        let messageContent;
+        if (imageFile) {
+            // Convert image to base64
+            const imageBuffer = fs_1.default.readFileSync(imageFile.path);
+            const base64Image = imageBuffer.toString('base64');
+            const imageUrl = `data:${imageFile.mimetype};base64,${base64Image}`;
+            messageContent = [
+                {
+                    type: "text",
+                    text: message || "What do you see in this image?"
+                },
+                {
+                    type: "image_url",
+                    image_url: {
+                        url: imageUrl,
+                        detail: "high"
+                    }
+                }
+            ];
+            // Clean up the uploaded file
+            fs_1.default.unlinkSync(imageFile.path);
+        }
+        else {
+            messageContent = message;
+        }
+        // Add system message for context
+        const systemMessage = {
+            role: "system",
+            content: "You are a helpful assistant that can see and analyze images. Provide detailed, accurate descriptions and insights about any images shared."
+        };
+        // Retrieve user's chat history and convert to proper format
         const chats = user.chats.map(({ role, content }) => ({
             role,
-            content,
+            content: Array.isArray(content) ? content : [{ type: "text", text: content }],
         }));
-        chats.push({ content: message, role: "user" });
-        user.chats.push({ content: message, role: "user" });
+        // Add the new message to chat history
+        const newMessage = {
+            role: "user",
+            content: messageContent
+        };
+        // Combine all messages
+        const allMessages = [systemMessage, ...chats, newMessage];
         // Create messages for Azure OpenAI
         const messages = {
-            messages: chats,
+            messages: allMessages,
             model: deploymentName,
-            max_tokens: 1000,
+            max_tokens: 4000,
             temperature: 0.7,
         };
         // Use Azure OpenAI client to get the response
@@ -47,7 +106,14 @@ const generateChatCompletion = async (req, res, next) => {
         const chatResponse = await client.chat.completions.create(messages);
         // Save the response message to user's chats
         const assistantMessage = chatResponse.choices[0].message;
-        user.chats.push(assistantMessage);
+        user.chats.push({
+            role: "user",
+            content: messageContent
+        }); // Save user's message
+        user.chats.push({
+            role: assistantMessage.role,
+            content: assistantMessage.content
+        }); // Save assistant's response
         await user.save();
         return res.status(200).json({ chats: user.chats });
     }
