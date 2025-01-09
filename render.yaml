@@ -3,7 +3,7 @@ services:
     name: lumina
     env: node
     buildCommand: npm run build && cd backend && python -m pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: cd /opt/render/project/src && cd backend && python agent-files/rag_agent.py & node dist/index.js
+    startCommand: cd /opt/render/project/src/backend && python agent-files/rag_agent.py & node dist/index.js
     envVars:
       - key: NODE_VERSION
         value: 18.x
