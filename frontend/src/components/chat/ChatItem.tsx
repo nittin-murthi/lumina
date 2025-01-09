@@ -4,27 +4,121 @@ import { useAuth } from "../../context/AuthContext";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-function extractCodeFromString(message: string) {
-  if (message.includes("```")) {
-    const blocks = message.split("```");
-    return blocks;
-  }
+interface ParsedBlock {
+  type: 'text' | 'heading' | 'bullet';
+  content: string;
+  level?: number;
 }
 
-function isCodeBlock(str: string) {
-  if (
-    str.includes("=") ||
-    str.includes(";") ||
-    str.includes("[") ||
-    str.includes("]") ||
-    str.includes("{") ||
-    str.includes("}") ||
-    str.includes("#") ||
-    str.includes("//")
-  ) {
-    return true;
+function parseContent(text: string): ParsedBlock[] {
+  const lines = text.split('\n');
+  const blocks: ParsedBlock[] = [];
+  let currentText = '';
+
+  lines.forEach((line) => {
+    // Skip empty lines or single symbols
+    if (!line.trim() || line.trim().match(/^[:|-]$/)) {
+      if (currentText) {
+        blocks.push({ type: 'text', content: currentText.trim() });
+        currentText = '';
+      }
+      return;
+    }
+
+    // Handle numbered headings (e.g., "1. Title")
+    const numberedHeading = line.match(/^(\d+)\.\s+(.+)$/);
+    if (numberedHeading) {
+      if (currentText) {
+        blocks.push({ type: 'text', content: currentText.trim() });
+        currentText = '';
+      }
+      blocks.push({
+        type: 'heading',
+        content: numberedHeading[2],
+        level: parseInt(numberedHeading[1])
+      });
+      return;
+    }
+
+    // Handle bullet points
+    if (line.startsWith('• ') || line.startsWith('- ')) {
+      if (currentText) {
+        blocks.push({ type: 'text', content: currentText.trim() });
+        currentText = '';
+      }
+      blocks.push({
+        type: 'bullet',
+        content: line.substring(2).trim()
+      });
+      return;
+    }
+
+    // Handle bold text
+    line = line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+    // Accumulate regular text
+    currentText += (currentText ? '\n' : '') + line;
+  });
+
+  // Add any remaining text
+  if (currentText) {
+    blocks.push({ type: 'text', content: currentText.trim() });
   }
-  return false;
+
+  return blocks;
+}
+
+function renderBlock(block: ParsedBlock, role: string) {
+  switch (block.type) {
+    case 'heading':
+      return (
+        <Typography
+          sx={{
+            fontSize: "1.2rem",
+            fontWeight: 700,
+            color: "#FFFFFF",
+            mt: 2,
+            mb: 1.5,
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            paddingBottom: 1,
+          }}
+          dangerouslySetInnerHTML={{ __html: block.content }}
+        />
+      );
+
+    case 'bullet':
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, ml: 2 }}>
+          <Typography sx={{ mr: 2, color: "#00fffc" }}>•</Typography>
+          <Typography
+            sx={{
+              flex: 1,
+              fontSize: "1rem",
+              lineHeight: 1.6,
+              color: role === "assistant" ? "#E0E0E0" : "#FFFFFF",
+            }}
+            dangerouslySetInnerHTML={{ __html: block.content }}
+          />
+        </Box>
+      );
+
+    case 'text':
+      return (
+        <Typography
+          sx={{
+            fontSize: "1rem",
+            lineHeight: 1.6,
+            color: role === "assistant" ? "#E0E0E0" : "#FFFFFF",
+            mb: 1.5,
+            '& b': {
+              fontWeight: 700,
+              color: "#FFFFFF",
+            }
+          }}
+          dangerouslySetInnerHTML={{ __html: block.content }}
+        />
+      );
+  }
 }
 
 type ChatItemProps = {
@@ -37,17 +131,25 @@ type ChatItemProps = {
 };
 
 const ChatItem = ({ content, role, image }: ChatItemProps) => {
-  const messageBlocks = typeof content === 'string' ? extractCodeFromString(content) : null;
   const auth = useAuth();
 
   const renderContent = () => {
     if (Array.isArray(content)) {
       return content.map((item, index) => {
         if (item.type === 'text') {
-          return <Typography key={index} sx={{ fontSize: "20px" }}>{item.text}</Typography>;
+          const blocks = parseContent(item.text || '');
+          return (
+            <Box key={index} sx={{ width: "100%" }}>
+              {blocks.map((block, blockIndex) => (
+                <Box key={blockIndex}>
+                  {renderBlock(block, role)}
+                </Box>
+              ))}
+            </Box>
+          );
         } else if (item.type === 'image_url') {
           return (
-            <Box key={index} sx={{ mt: 2 }}>
+            <Box key={index} sx={{ mt: 2, width: "100%" }}>
               <img 
                 src={item.image_url.url} 
                 alt="Content"
@@ -65,36 +167,29 @@ const ChatItem = ({ content, role, image }: ChatItemProps) => {
       });
     }
 
-    if (!messageBlocks) {
-      return (
-        <>
-          <Typography sx={{ fontSize: "20px" }}>{content}</Typography>
-          {image && (
-            <Box sx={{ mt: 2 }}>
-              <img 
-                src={image.url} 
-                alt="Uploaded content"
-                style={{ 
-                  maxWidth: '300px', 
-                  maxHeight: '300px', 
-                  borderRadius: '8px',
-                  objectFit: 'contain'
-                }} 
-              />
-            </Box>
-          )}
-        </>
-      );
-    }
-
-    return messageBlocks.map((block, index) =>
-      isCodeBlock(block) ? (
-        <SyntaxHighlighter key={index} style={coldarkDark} language="javascript">
-          {block}
-        </SyntaxHighlighter>
-      ) : (
-        <Typography key={index} sx={{ fontSize: "20px" }}>{block}</Typography>
-      )
+    const blocks = parseContent(content);
+    return (
+      <Box sx={{ width: "100%" }}>
+        {blocks.map((block, index) => (
+          <Box key={index}>
+            {renderBlock(block, role)}
+          </Box>
+        ))}
+        {image && (
+          <Box sx={{ mt: 2 }}>
+            <img 
+              src={image.url} 
+              alt="Uploaded content"
+              style={{ 
+                maxWidth: '300px', 
+                maxHeight: '300px', 
+                borderRadius: '8px',
+                objectFit: 'contain'
+              }} 
+            />
+          </Box>
+        )}
+      </Box>
     );
   };
 
@@ -102,17 +197,23 @@ const ChatItem = ({ content, role, image }: ChatItemProps) => {
     <Box
       sx={{
         display: "flex",
-        p: 2,
-        bgcolor: "#004d5612",
+        p: "10px 24px",
+        bgcolor: "rgba(0, 77, 86, 0.1)",
         gap: 2,
         borderRadius: 2,
-        my: 1,
+        my: 0.75,
+        maxWidth: "85%",
+        alignSelf: "flex-start",
+        backdropFilter: "blur(10px)",
+        border: "1px solid rgba(0, 77, 86, 0.2)",
+        width: "100%",
+        textAlign: "left",
       }}
     >
-      <Avatar sx={{ ml: "0" }}>
-        <img src="pngtree-shine-idea-lightbulb-in-yellow-and-gray-color-png-image_6579931.png" alt="openai" width={"30px"} />
+      <Avatar sx={{ ml: "0", width: 32, height: 32 }}>
+        <img src="pngtree-shine-idea-lightbulb-in-yellow-and-gray-color-png-image_6579931.png" alt="openai" width={"24px"} />
       </Avatar>
-      <Box>
+      <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
         {renderContent()}
       </Box>
     </Box>
@@ -120,17 +221,23 @@ const ChatItem = ({ content, role, image }: ChatItemProps) => {
     <Box
       sx={{
         display: "flex",
-        p: 2,
-        bgcolor: "#004d56",
+        p: "10px 24px",
+        bgcolor: "rgba(0, 77, 86, 0.3)",
         gap: 2,
         borderRadius: 2,
-        my: 1
+        my: 0.75,
+        maxWidth: "85%",
+        alignSelf: "flex-end",
+        backdropFilter: "blur(10px)",
+        border: "1px solid rgba(0, 77, 86, 0.4)",
+        width: "100%",
+        textAlign: "left",
       }}
     >
-      <Avatar sx={{ ml: "0", bgcolor: "black", color: "white" }}>
+      <Avatar sx={{ ml: "0", bgcolor: "black", color: "white", width: 32, height: 32, fontSize: "0.9rem" }}>
         {auth?.user?.name[0]}
       </Avatar>
-      <Box>
+      <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left", justifyContent: "center" }}>
         {renderContent()}
       </Box>
     </Box>
