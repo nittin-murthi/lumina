@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: lumina
+    env: node
+    buildCommand: npm run build && cd backend && python -m pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: cd backend && python app.py & node dist/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: PYTHON_PATH
+        value: /opt/render/project/src/backend
+      - key: PATH
+        value: /opt/render/project/src/backend:${PATH}
+    healthCheckPath: /health
+    disk:
+      name: chroma-db
+      mountPath: /opt/render/project/src/backend/chroma_db
+      sizeGB: 1 

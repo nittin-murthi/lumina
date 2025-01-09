@@ -7,11 +7,11 @@
     "dev": "NODE_ENV=development concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && nodemon --exec ts-node src/index.ts",
     "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm install && npm run build:backend && npm run build:frontend && cd backend && npm rebuild bcrypt --build-from-source && npm install",
+    "build": "npm install && npm run build:backend && npm run build:frontend && cd backend && npm rebuild bcrypt --build-from-source && npm install && pip install -r requirements.txt",
     "build:backend": "cd backend && tsc",
     "build:frontend": "cd frontend && npm install && npm run build",
-    "start": "cd backend && cross-env NODE_ENV=production node dist/index.js",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "start": "cd backend && cross-env NODE_ENV=production node dist/index.js & python app.py",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && pip install -r requirements.txt"
   },
   "dependencies": {
     "@azure/openai": "^2.0.0",
