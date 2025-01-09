@@ -10,8 +10,22 @@ interface ParsedBlock {
   level?: number;
 }
 
+function cleanMessage(content: string): string {
+  // Remove agent execution metadata and asterisks
+  const cleanedContent = content
+    .replace(/\[1m> .*?\[0m/g, '')  // Remove execution markers
+    .replace(/\[[\d;]+m/g, '')  // Remove ANSI color codes
+    .replace(/Entering new AgentExecutor chain\.\.\./g, '')  // Remove chain entry message
+    .replace(/Finished chain\./g, '')  // Remove chain completion message
+    .replace(/\*\*/g, '')  // Remove all asterisks
+    .trim();  // Remove extra whitespace
+  return cleanedContent;
+}
+
 function parseContent(text: string): ParsedBlock[] {
-  const lines = text.split('\n');
+  // Clean the message first
+  const cleanedText = cleanMessage(text);
+  const lines = cleanedText.split('\n');
   const blocks: ParsedBlock[] = [];
   let currentText = '';
 
@@ -53,8 +67,8 @@ function parseContent(text: string): ParsedBlock[] {
       return;
     }
 
-    // Handle bold text
-    line = line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    // Remove asterisks from text
+    line = line.replace(/\*\*/g, '');
 
     // Accumulate regular text
     currentText += (currentText ? '\n' : '') + line;
@@ -74,8 +88,8 @@ function renderBlock(block: ParsedBlock, role: string) {
       return (
         <Typography
           sx={{
-            fontSize: "1.2rem",
-            fontWeight: 700,
+            fontSize: "1.1rem",
+            fontWeight: 600,
             color: "#FFFFFF",
             mt: 2,
             mb: 1.5,
@@ -109,11 +123,7 @@ function renderBlock(block: ParsedBlock, role: string) {
             fontSize: "1rem",
             lineHeight: 1.6,
             color: role === "assistant" ? "#E0E0E0" : "#FFFFFF",
-            mb: 1.5,
-            '& b': {
-              fontWeight: 700,
-              color: "#FFFFFF",
-            }
+            mb: 1.5
           }}
           dangerouslySetInnerHTML={{ __html: block.content }}
         />

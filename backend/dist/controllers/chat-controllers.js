@@ -9,6 +9,7 @@ const openai_1 = require("openai");
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const rag_service_1 = require("../services/rag-service");
 const endpoint = "https://invite-instance-openai.openai.azure.com";
 const apiKey = "a3babad21aee482798891f0e56f538f4";
 const apiVersion = "2024-02-15-preview";
@@ -51,10 +52,10 @@ const generateChatCompletion = async (req, res, next) => {
             return res
                 .status(401)
                 .json({ message: "User not registered OR Token malfunctioned" });
-        // Prepare the message content
+        let assistantResponse;
         let messageContent;
         if (imageFile) {
-            // Convert image to base64
+            // Handle image-based input using Azure OpenAI
             const imageBuffer = fs_1.default.readFileSync(imageFile.path);
             const base64Image = imageBuffer.toString('base64');
             const imageUrl = `data:${imageFile.mimetype};base64,${base64Image}`;
@@ -71,49 +72,50 @@ const generateChatCompletion = async (req, res, next) => {
                     }
                 }
             ];
+            // Use Azure OpenAI for image analysis
+            const systemMessage = {
+                role: "system",
+                content: "You are a helpful assistant that can see and analyze images. Provide detailed, accurate descriptions and insights about any images shared."
+            };
+            const chats = user.chats.map(({ role, content }) => ({
+                role,
+                content: Array.isArray(content) ? content : [{ type: "text", text: content }],
+            }));
+            const newMessage = {
+                role: "user",
+                content: messageContent
+            };
+            const allMessages = [systemMessage, ...chats, newMessage];
+            const messages = {
+                messages: allMessages,
+                model: deploymentName,
+                max_tokens: 4000,
+                temperature: 0.7,
+            };
+            const client = getAzureClient();
+            const chatResponse = await client.chat.completions.create(messages);
+            assistantResponse = chatResponse.choices[0].message.content;
             // Clean up the uploaded file
             fs_1.default.unlinkSync(imageFile.path);
         }
         else {
+            // Handle text-based input using RAG agent
             messageContent = message;
+            const ragResponse = await (0, rag_service_1.getRagResponse)(message);
+            if (ragResponse.error) {
+                return res.status(500).json({ message: "RAG agent error", error: ragResponse.error });
+            }
+            assistantResponse = ragResponse.output;
         }
-        // Add system message for context
-        const systemMessage = {
-            role: "system",
-            content: "You are a helpful assistant that can see and analyze images. Provide detailed, accurate descriptions and insights about any images shared."
-        };
-        // Retrieve user's chat history and convert to proper format
-        const chats = user.chats.map(({ role, content }) => ({
-            role,
-            content: Array.isArray(content) ? content : [{ type: "text", text: content }],
-        }));
-        // Add the new message to chat history
-        const newMessage = {
-            role: "user",
-            content: messageContent
-        };
-        // Combine all messages
-        const allMessages = [systemMessage, ...chats, newMessage];
-        // Create messages for Azure OpenAI
-        const messages = {
-            messages: allMessages,
-            model: deploymentName,
-            max_tokens: 4000,
-            temperature: 0.7,
-        };
-        // Use Azure OpenAI client to get the response
-        const client = getAzureClient();
-        const chatResponse = await client.chat.completions.create(messages);
-        // Save the response message to user's chats
-        const assistantMessage = chatResponse.choices[0].message;
+        // Save the conversation to user's chats
         user.chats.push({
             role: "user",
             content: messageContent
-        }); // Save user's message
+        });
         user.chats.push({
-            role: assistantMessage.role,
-            content: assistantMessage.content
-        }); // Save assistant's response
+            role: "assistant",
+            content: assistantResponse
+        });
         await user.save();
         return res.status(200).json({ chats: user.chats });
     }

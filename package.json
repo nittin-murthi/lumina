@@ -16,12 +16,13 @@
   "dependencies": {
     "@azure/openai": "^2.0.0",
     "axios": "^1.7.9",
-    "openai": "^4.77.0",
     "concurrently": "^8.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
     "nodemon": "^3.0.0",
-    "cross-env": "^7.0.3"
+    "openai": "^4.77.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0"

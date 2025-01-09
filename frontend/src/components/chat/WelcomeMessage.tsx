@@ -13,6 +13,11 @@ export const TopMessage = () => {
         margin: "0 auto",
         padding: "2rem",
         textAlign: "left",
+        position: "absolute",
+        top: "4%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%"
       }}
     >
       <Box
@@ -59,6 +64,8 @@ export const BottomMessage = () => {
         margin: "0 auto",
         padding: "2rem",
         textAlign: "left",
+        position: "relative",
+        zIndex: 1
       }}
     >
       <Box
@@ -71,6 +78,15 @@ export const BottomMessage = () => {
             0 0 15px rgba(0, 255, 252, 0.15),
             0 0 30px rgba(0, 255, 252, 0.1)
           `,
+          position: "relative",
+          zIndex: 1,
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            background: "transparent",
+            zIndex: -1
+          }
         }}
       >
         <Box>
@@ -101,7 +117,7 @@ export const BottomMessage = () => {
             ))}
           </ul>
         </Box>
-        
+
         <Typography 
           variant="body1" 
           sx={{ 

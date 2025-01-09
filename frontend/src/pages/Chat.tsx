@@ -31,16 +31,38 @@ const Chat = () => {
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (messagesEndRef.current && shouldAutoScroll) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "start"
+      });
     }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (chatMessages.length > 0) {
+      scrollToBottom();
+    }
   }, [chatMessages]);
+
+  // Handle scroll events to determine if we should auto-scroll
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      // If we're near the bottom (within 100px), enable auto-scroll
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShouldAutoScroll(isNearBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSubmit = async () => {
     const content = inputRef.current?.value as string;
@@ -152,9 +174,10 @@ const Chat = () => {
             flex: 1,
             overflow: "auto",
             px: 3,
-            pb: 3,
+            pb: chatMessages.length === 0 ? 3 : "100px",
             display: "flex",
             flexDirection: "column",
+            background: "transparent",
             "&::-webkit-scrollbar": {
               width: "8px",
             },
@@ -264,8 +287,10 @@ const Chat = () => {
           initial={false}
           layout
           animate={{
-            y: chatMessages.length === 0 ? 0 : 0,
-            height: "auto"
+            y: 0,
+            height: "auto",
+            position: "fixed",
+            top: chatMessages.length === 0 ? "50vh" : "85vh"
           }}
           transition={{ 
             duration: 0.8, 
@@ -275,7 +300,16 @@ const Chat = () => {
               ease: "easeInOut"
             }
           }}
-          style={{ width: "100%", position: "relative", zIndex: 1 }}
+          style={{ 
+            width: "100%", 
+            position: "fixed",
+            top: chatMessages.length === 0 ? "50vh" : "85vh",
+            background: "transparent",
+            zIndex: 10,
+            transform: "translateY(-50%)",
+            left: 0,
+            right: 0
+          }}
         >
           <Box
             sx={{
@@ -284,6 +318,8 @@ const Chat = () => {
               display: "flex",
               flexDirection: "column",
               gap: 3,
+              maxWidth: "100%",
+              margin: "0 auto"
             }}
           >
             <motion.div
