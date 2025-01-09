@@ -50,16 +50,12 @@ const Chat = () => {
       inputRef.current.value = "";
     }
 
-    console.log("Selected Image:", selectedImage);
-    console.log("Content:", content);
-
     const message: Message = {
       role: "user",
       content: content,
     };
 
     if (selectedImage) {
-      console.log("Image being processed:", selectedImage.name, selectedImage.type, selectedImage.size);
       message.image = {
         url: URL.createObjectURL(selectedImage),
         data: selectedImage,
@@ -68,20 +64,22 @@ const Chat = () => {
       setImagePreview(null);
     }
 
-    setChatMessages((prev) => [...prev, message]);
+    // Update messages with animation timing in mind
+    setTimeout(() => {
+      setChatMessages((prev) => [...prev, message]);
+    }, 100);
 
     try {
-      console.log("Sending request with:", { content, selectedImage });
       const chatData = await sendChatRequest(content, selectedImage);
-      console.log("Response from API:", chatData);
       if (chatData.chats && Array.isArray(chatData.chats)) {
-        setChatMessages(chatData.chats);
+        setTimeout(() => {
+          setChatMessages(chatData.chats);
+        }, 100);
       } else {
         console.error("Invalid response format:", chatData);
       }
     } catch (error) {
       console.error("API Error Details:", error);
-      console.error("Full error object:", JSON.stringify(error, null, 2));
       toast.error("Something went wrong");
     }
   };
@@ -177,14 +175,22 @@ const Chat = () => {
             {chatMessages.length === 0 ? (
               <TopMessage />
             ) : (
-              chatMessages.map((chat, index) => (
-                <ChatItem
-                  content={chat.content}
-                  role={chat.role}
-                  key={index}
-                  image={chat.image}
-                />
-              ))
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                style={{ width: "100%" }}
+              >
+                {chatMessages.map((chat, index) => (
+                  <ChatItem
+                    key={index}
+                    content={chat.content}
+                    role={chat.role}
+                    image={chat.image}
+                  />
+                ))}
+              </motion.div>
             )}
           </AnimatePresence>
           <div ref={messagesEndRef} />
@@ -256,10 +262,19 @@ const Chat = () => {
         )}
         <motion.div
           initial={false}
+          layout
           animate={{
             y: chatMessages.length === 0 ? 0 : 0,
+            height: "auto"
           }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
+          transition={{ 
+            duration: 0.8, 
+            ease: "easeInOut",
+            layout: {
+              duration: 0.8,
+              ease: "easeInOut"
+            }
+          }}
           style={{ width: "100%", position: "relative", zIndex: 1 }}
         >
           <Box
@@ -271,125 +286,132 @@ const Chat = () => {
               gap: 3,
             }}
           >
-            <Box sx={{ 
-              display: "flex", 
-              gap: 2, 
-              alignItems: "center",
-              width: "100%",
-              transition: "width 0.5s ease-in-out",
-              position: "relative",
-              zIndex: 2,
-            }}>
-              {chatMessages.length > 0 && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <IconButton
-                    onClick={handleClear}
-                    sx={{
-                      height: "45px",
-                      width: "45px",
-                      bgcolor: "rgba(255, 0, 0, 0.15)",
-                      color: "#ff4444",
-                      borderRadius: "8px",
-                      "&:hover": { 
-                        bgcolor: "rgba(255, 0, 0, 0.25)",
-                      },
-                      transition: "all 0.2s ease-in-out",
-                    }}
+            <motion.div
+              layout
+              transition={{
+                duration: 0.8,
+                ease: "easeInOut"
+              }}
+            >
+              <Box sx={{ 
+                display: "flex", 
+                gap: 2, 
+                alignItems: "center",
+                width: "100%",
+                position: "relative",
+                zIndex: 2,
+              }}>
+                {chatMessages.length > 0 && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    <FaTrash size={16} />
-                  </IconButton>
-                </motion.div>
-              )}
-              <Box
-                sx={{
-                  width: "100%",
-                  borderRadius: "8px",
-                  bgcolor: "rgb(17,27,39)",
-                  display: "flex",
-                  alignItems: "center",
-                  height: "45px",
-                  boxShadow: chatMessages.length === 0 
-                    ? 'none'
-                    : `
-                      0 0 15px rgba(0, 255, 252, 0.15),
-                      0 0 30px rgba(0, 255, 252, 0.1),
-                      0 0 45px rgba(0, 255, 252, 0.05)
-                    `,
-                  border: "1px solid rgba(0, 255, 252, 0.2)",
-                  position: "relative",
-                  "&::before": chatMessages.length === 0 ? {
-                    content: '""',
-                    position: "absolute",
-                    inset: "-4px",
-                    borderRadius: "12px",
-                    padding: "4px",
-                    background: "linear-gradient(45deg, rgba(0, 255, 252, 0.3), rgba(0, 255, 252, 0.5))",
-                    WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                    WebkitMaskComposite: "xor",
-                    maskComposite: "exclude",
-                    animation: "pulse 2s ease-in-out infinite",
-                    boxShadow: `
-                      0 0 30px rgba(0, 255, 252, 0.3),
-                      0 0 60px rgba(0, 255, 252, 0.2)
-                    `,
-                  } : {},
-                  "@keyframes pulse": {
-                    "0%": {
-                      opacity: 0.4,
-                    },
-                    "50%": {
-                      opacity: 1,
-                    },
-                    "100%": {
-                      opacity: 0.4,
-                    },
-                  },
-                }}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                  onChange={handleImageSelect}
-                />
-                <IconButton
-                  onClick={() => fileInputRef.current?.click()}
-                  sx={{ color: "white", mx: 1, zIndex: 2 }}
-                >
-                  <MdAddPhotoAlternate />
-                </IconButton>
-                <input
-                  ref={inputRef}
-                  onKeyDown={handleKeyDown}
-                  type="text"
-                  style={{
+                    <IconButton
+                      onClick={handleClear}
+                      sx={{
+                        height: "45px",
+                        width: "45px",
+                        bgcolor: "rgba(255, 0, 0, 0.15)",
+                        color: "#ff4444",
+                        borderRadius: "8px",
+                        "&:hover": { 
+                          bgcolor: "rgba(255, 0, 0, 0.25)",
+                        },
+                        transition: "all 0.2s ease-in-out",
+                      }}
+                    >
+                      <FaTrash size={16} />
+                    </IconButton>
+                  </motion.div>
+                )}
+                <Box
+                  sx={{
                     width: "100%",
+                    borderRadius: "8px",
+                    bgcolor: "rgb(17,27,39)",
+                    display: "flex",
+                    alignItems: "center",
                     height: "45px",
-                    background: "transparent",
-                    padding: "10px",
-                    border: "none",
-                    outline: "none",
-                    color: "white",
-                    fontSize: "16px",
+                    boxShadow: chatMessages.length === 0 
+                      ? 'none'
+                      : `
+                        0 0 15px rgba(0, 255, 252, 0.15),
+                        0 0 30px rgba(0, 255, 252, 0.1),
+                        0 0 45px rgba(0, 255, 252, 0.05)
+                      `,
+                    border: "1px solid rgba(0, 255, 252, 0.2)",
                     position: "relative",
-                    zIndex: 2,
+                    "&::before": chatMessages.length === 0 ? {
+                      content: '""',
+                      position: "absolute",
+                      inset: "-4px",
+                      borderRadius: "12px",
+                      padding: "4px",
+                      background: "linear-gradient(45deg, rgba(0, 255, 252, 0.3), rgba(0, 255, 252, 0.5))",
+                      WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                      WebkitMaskComposite: "xor",
+                      maskComposite: "exclude",
+                      animation: "pulse 2s ease-in-out infinite",
+                      boxShadow: `
+                        0 0 30px rgba(0, 255, 252, 0.3),
+                        0 0 60px rgba(0, 255, 252, 0.2)
+                      `,
+                    } : {},
+                    "@keyframes pulse": {
+                      "0%": {
+                        opacity: 0.4,
+                      },
+                      "50%": {
+                        opacity: 1,
+                      },
+                      "100%": {
+                        opacity: 0.4,
+                      },
+                    },
                   }}
-                  placeholder="Type your message here..."
-                />
-                <IconButton onClick={handleSubmit} sx={{ color: "white", mx: 1, zIndex: 2 }}>
-                  <IoMdSend />
-                </IconButton>
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    onChange={handleImageSelect}
+                  />
+                  <IconButton
+                    onClick={() => fileInputRef.current?.click()}
+                    sx={{ color: "white", mx: 1, zIndex: 2 }}
+                  >
+                    <MdAddPhotoAlternate />
+                  </IconButton>
+                  <input
+                    ref={inputRef}
+                    onKeyDown={handleKeyDown}
+                    type="text"
+                    style={{
+                      width: "100%",
+                      height: "45px",
+                      background: "transparent",
+                      padding: "10px",
+                      border: "none",
+                      outline: "none",
+                      color: "white",
+                      fontSize: "16px",
+                      position: "relative",
+                      zIndex: 2,
+                    }}
+                    placeholder="Type your message here..."
+                  />
+                  <IconButton onClick={handleSubmit} sx={{ color: "white", mx: 1, zIndex: 2 }}>
+                    <IoMdSend />
+                  </IconButton>
+                </Box>
               </Box>
-            </Box>
-            <AnimatePresence mode="wait">
-              {chatMessages.length === 0 && <BottomMessage />}
-            </AnimatePresence>
+              <AnimatePresence mode="wait">
+                {chatMessages.length === 0 && <BottomMessage />}
+              </AnimatePresence>
+            </motion.div>
           </Box>
         </motion.div>
       </Box>
