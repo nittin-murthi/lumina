@@ -35,18 +35,36 @@ export const sendChatRequest = async (message: string, image?: File) => {
   const formData = new FormData();
   formData.append('message', message);
   if (image) {
+    console.log("Appending image to FormData:", image.name, image.type, image.size);
     formData.append('image', image);
-  }
-  const res = await axios.post("/chat/new", formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
+    
+    // Log FormData contents
+    console.log("FormData contents:");
+    for (const pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
     }
-  });
-  if (res.status !== 200) {
-    throw new Error("Unable to send chat");
   }
-  const data = await res.data;
-  return data;
+
+  try {
+    console.log("Sending request to /chat/new");
+    const res = await axios.post("/chat/new", formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    console.log("Response status:", res.status);
+    console.log("Response data:", res.data);
+
+    if (res.status !== 200) {
+      throw new Error("Unable to send chat");
+    }
+    const data = await res.data;
+    return data;
+  } catch (error) {
+    console.error("Error in sendChatRequest:", error);
+    console.error("Full error object:", JSON.stringify(error, null, 2));
+    throw error;
+  }
 };
 
 export const getUserChats = async () => {

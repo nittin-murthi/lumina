@@ -49,12 +49,16 @@ const Chat = () => {
       inputRef.current.value = "";
     }
 
+    console.log("Selected Image:", selectedImage);
+    console.log("Content:", content);
+
     const message: Message = {
       role: "user",
       content: content,
     };
 
     if (selectedImage) {
+      console.log("Image being processed:", selectedImage.name, selectedImage.type, selectedImage.size);
       message.image = {
         url: URL.createObjectURL(selectedImage),
         data: selectedImage,
@@ -66,12 +70,17 @@ const Chat = () => {
     setChatMessages((prev) => [...prev, message]);
 
     try {
+      console.log("Sending request with:", { content, selectedImage });
       const chatData = await sendChatRequest(content, selectedImage);
+      console.log("Response from API:", chatData);
       if (chatData.chats && Array.isArray(chatData.chats)) {
         setChatMessages(chatData.chats);
+      } else {
+        console.error("Invalid response format:", chatData);
       }
     } catch (error) {
-      console.log(error);
+      console.error("API Error Details:", error);
+      console.error("Full error object:", JSON.stringify(error, null, 2));
       toast.error("Something went wrong");
     }
   };
@@ -183,14 +192,15 @@ const Chat = () => {
             >
               <Box
                 sx={{
-                  position: "absolute",
-                  bottom: "80px",
+                  position: "fixed",
+                  bottom: "100px",
                   left: "50%",
                   transform: "translateX(-50%)",
                   width: "fit-content",
                   borderRadius: "12px",
                   overflow: "hidden",
                   boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  zIndex: 10,
                 }}
               >
                 <motion.img
