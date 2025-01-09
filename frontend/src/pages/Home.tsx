@@ -1,66 +1,109 @@
-// @ts-nocheck
-import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 import React from "react";
-import TypingAnim from "../components/typer/TypingAnim";
-import Footer from "../components/Footer/Footer";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const Home = () => {
-  const theme = useTheme();
-  const isBelowMd = useMediaQuery(theme.breakpoints.down("md"));
+  const auth = useAuth();
+
   return (
-    <Box width={"100%"} height={"100%"}>
+    <Box
+      sx={{
+        width: "100%",
+        minHeight: "90vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 20px",
+        textAlign: "center",
+      }}
+    >
       <Box
         sx={{
-          display: "flex",
+          maxWidth: "1200px",
           width: "100%",
-          flexDirection: "column",
-          alignItems: "center",
-          mx: "auto",
-          mt: 3,
         }}
       >
-        <Box>
-          <TypingAnim />
-        </Box>
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            flexDirection: { md: "row", xs: "column", sm: "column" },
-            gap: 5,
-            my: 10,
+        <h1
+          style={{
+            fontSize: "4.5rem",
+            fontWeight: "700",
+            marginBottom: "1rem",
+            lineHeight: "1.2",
           }}
         >
-          <img
-            src="robot.png"
-            alt="robot"
-            style={{ width: "200px", margin: "auto" }}
-          />
-          <img
-            className="image-inverted rotate"
-            src="openai.png"
-            alt="openai"
-            style={{ width: "200px", margin: "auto" }}
-          />
-        </Box>
-        <Box sx={{ display: "flex", mx: "auto" }}>
-          <img
-            src="chat.png"
-            alt="chatbot"
-            style={{
-              display: "flex",
-              margin: "auto",
-              width: isBelowMd ? "80%" : "60%",
-              borderRadius: 20,
-              boxShadow: "-5px -5px 105px #64f3d5",
-              marginTop: 20,
-              marginBottom: 20,
-              padding: 10,
-            }}
-          />
+          Learning circuits is hard.
+          <br />
+          Getting help is easy.
+        </h1>
+
+        <p
+          style={{
+            fontSize: "1.5rem",
+            color: "rgba(255, 255, 255, 0.7)",
+            marginBottom: "3rem",
+            lineHeight: "1.5",
+          }}
+        >
+          Lumina provides 24/7 personalized ECE120 assistance, helping you master digital logic
+          and computer organization with instant, accurate support whenever you need it.
+        </p>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: "1rem",
+            justifyContent: "center",
+            "& .nav-link": {
+              fontSize: "1.2rem",
+              padding: "1rem 2rem",
+              borderRadius: "8px",
+              transition: "transform 0.2s ease-in-out",
+              "&:hover": {
+                transform: "translateY(-2px)",
+              },
+            },
+          }}
+        >
+          {auth?.isLoggedIn ? (
+            <>
+              <Link
+                to="/chat"
+                className="nav-link"
+                style={{ background: "#00fffc", color: "black" }}
+              >
+                Start Learning
+              </Link>
+              <Link
+                to="/"
+                className="nav-link"
+                style={{ background: "#51538f", color: "#e0e0ff" }}
+                onClick={auth.logout}
+              >
+                Logout
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="nav-link"
+                style={{ background: "#00fffc", color: "black" }}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="nav-link"
+                style={{ background: "#51538f", color: "#e0e0ff" }}
+              >
+                Create Account
+              </Link>
+            </>
+          )}
         </Box>
       </Box>
-      <Footer />
     </Box>
   );
 };

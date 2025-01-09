@@ -4,7 +4,6 @@ const TypingAnim = () => {
   return (
     <TypeAnimation
       sequence={[
-        // Same substring at the start will only be typed once, initially
         "Your personal ECE120 Teaching Assistant",
         1000,
         "Skip the office hours queue",
@@ -14,10 +13,10 @@ const TypingAnim = () => {
       ]}
       speed={50}
       style={{
-        fontSize: "60px",
+        fontSize: "48px",
         color: "white",
         display: "inline-block",
-        textShadow: "1px 1px 20px #000",
+        textShadow: "1px 1px 10px rgba(0, 0, 0, 0.5)",
       }}
       repeat={Infinity}
     />

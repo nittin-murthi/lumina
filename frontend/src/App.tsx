@@ -7,6 +7,7 @@ import Signup from './pages/SIgnup'
 import NotFound from './pages/NotFound'
 import Chat from './pages/Chat'
 import { useAuth } from './context/AuthContext'
+import MatrixRain from './components/MatrixRain'
 
 function App() {
   console.log(useAuth()?.isLoggedIn);
@@ -16,6 +17,7 @@ function App() {
   // This prevents unauthorized access to the chat functionality
   return (
     <main>
+      <MatrixRain />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
