@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
