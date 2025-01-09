@@ -32,6 +32,7 @@ const Chat = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current && shouldAutoScroll) {
@@ -82,8 +83,8 @@ const Chat = () => {
         url: URL.createObjectURL(selectedImage),
         data: selectedImage,
       };
-      setSelectedImage(null);
-      setImagePreview(null);
+      setIsUploading(true);
+      toast.loading("Processing your image...", { id: "imageUpload" });
     }
 
     // Update messages with animation timing in mind
@@ -96,21 +97,42 @@ const Chat = () => {
       if (chatData.chats && Array.isArray(chatData.chats)) {
         setTimeout(() => {
           setChatMessages(chatData.chats);
+          // Only clear the image after we get a successful response
+          if (selectedImage) {
+            toast.success("Image uploaded successfully", { id: "imageUpload" });
+          }
+          setSelectedImage(null);
+          setImagePreview(null);
+          setIsUploading(false);
         }, 100);
       } else {
         console.error("Invalid response format:", chatData);
+        if (selectedImage) {
+          toast.error("Failed to process image", { id: "imageUpload" });
+        }
+        setIsUploading(false);
       }
     } catch (error) {
       console.error("API Error Details:", error);
-      toast.error("Something went wrong");
+      if (selectedImage) {
+        toast.error("Failed to upload image", { id: "imageUpload" });
+      } else {
+        toast.error("Something went wrong");
+      }
+      setIsUploading(false);
     }
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
+      // Set up preview first
       setImagePreview(URL.createObjectURL(file));
+      setSelectedImage(file);
+      // Small delay to ensure preview is visible before toast
+      setTimeout(() => {
+        toast.success("Image uploaded successfully", { id: "imageSelect" });
+      }, 100);
     }
   };
 
@@ -221,64 +243,136 @@ const Chat = () => {
         {imagePreview && (
           <AnimatePresence>
             <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "40px" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ 
+                duration: 0.3,
+                ease: [0.4, 0, 0.2, 1]
+              }}
+              style={{
+                width: "100%",
+                overflow: "hidden",
+                position: "absolute",
+                bottom: "calc(100% + 8px)",
+                left: 0,
+                right: 0,
+                paddingLeft: "16px",
+                paddingRight: "16px",
+                zIndex: 20
+              }}
             >
               <Box
                 sx={{
-                  position: "fixed",
-                  bottom: "100px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "fit-content",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                  zIndex: 10,
+                  width: "100%",
+                  height: "40px",
+                  borderRadius: "8px",
+                  bgcolor: "rgba(17, 27, 39, 0.95)",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "4px 8px",
+                  border: "1px solid rgba(0, 255, 252, 0.3)",
+                  boxShadow: `
+                    0 0 15px rgba(0, 255, 252, 0.15),
+                    0 0 30px rgba(0, 255, 252, 0.1),
+                    0 4px 10px rgba(0, 0, 0, 0.25)
+                  `,
+                  transform: "translateY(0)",
+                  position: "relative",
                 }}
               >
-                <motion.img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{
-                    maxWidth: "200px",
-                    maxHeight: "200px",
-                    display: "block",
-                    objectFit: "cover",
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                />
-                <IconButton
-                  onClick={() => {
-                    setSelectedImage(null);
-                    setImagePreview(null);
-                  }}
+                <Box
                   sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    bgcolor: "rgba(0,0,0,0.6)",
-                    color: "white",
-                    padding: "4px",
-                    minWidth: "24px",
-                    minHeight: "24px",
-                    "&:hover": {
-                      bgcolor: "rgba(0,0,0,0.8)",
-                      transform: "scale(1.1)",
-                    },
-                    transition: "all 0.2s ease-in-out",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    mr: 1,
+                    position: "relative",
+                    border: "1px solid rgba(0, 255, 252, 0.2)"
                   }}
                 >
-                  <motion.div
-                    whileHover={{ rotate: 90 }}
+                  <motion.img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      filter: isUploading ? "brightness(0.7)" : "none",
+                    }}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
                     transition={{ duration: 0.2 }}
+                  />
+                  {isUploading && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "rgba(0, 0, 0, 0.3)",
+                      }}
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ 
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          border: "2px solid rgba(0, 255, 252, 0.3)",
+                          borderTopColor: "rgba(0, 255, 252, 1)",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "rgba(255, 255, 255, 0.8)",
+                    flexGrow: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {isUploading ? "Uploading image..." : "Image selected"}
+                </Typography>
+                {!isUploading && (
+                  <IconButton
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                    }}
+                    sx={{
+                      color: "white",
+                      p: "4px",
+                      "&:hover": {
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                      },
+                    }}
                   >
-                    ×
-                  </motion.div>
-                </IconButton>
+                    <motion.div
+                      whileHover={{ rotate: 90 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      ×
+                    </motion.div>
+                  </IconButton>
+                )}
               </Box>
             </motion.div>
           </AnimatePresence>
