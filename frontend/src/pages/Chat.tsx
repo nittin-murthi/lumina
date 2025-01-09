@@ -10,6 +10,7 @@ import { deleteUserChats, getUserChats, sendChatRequest } from '../helpers/api-c
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TopMessage, BottomMessage } from '../components/chat/WelcomeMessage';
 
 type Message = {
   role: "user" | "assistant";
@@ -169,17 +170,23 @@ const Chat = () => {
             "&::-webkit-scrollbar-thumb:hover": {
               background: "rgba(255, 255, 255, 0.2)",
             },
-            justifyContent: chatMessages.length === 0 ? "center" : "flex-start",
+            justifyContent: chatMessages.length === 0 ? "flex-end" : "flex-start",
           }}
         >
-          {chatMessages.map((chat, index) => (
-            <ChatItem
-              content={chat.content}
-              role={chat.role}
-              key={index}
-              image={chat.image}
-            />
-          ))}
+          <AnimatePresence mode="wait">
+            {chatMessages.length === 0 ? (
+              <TopMessage />
+            ) : (
+              chatMessages.map((chat, index) => (
+                <ChatItem
+                  content={chat.content}
+                  role={chat.role}
+                  key={index}
+                  image={chat.image}
+                />
+              ))
+            )}
+          </AnimatePresence>
           <div ref={messagesEndRef} />
         </Box>
         {imagePreview && (
@@ -250,7 +257,7 @@ const Chat = () => {
         <motion.div
           initial={false}
           animate={{
-            y: chatMessages.length === 0 ? "-400%" : 0,
+            y: chatMessages.length === 0 ? 0 : 0,
           }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           style={{ width: "100%", position: "relative", zIndex: 1 }}
@@ -260,15 +267,15 @@ const Chat = () => {
               p: 3,
               bgcolor: "transparent",
               display: "flex",
-              justifyContent: "center",
-              marginTop: chatMessages.length === 0 ? "-45vh" : 0,
+              flexDirection: "column",
+              gap: 3,
             }}
           >
             <Box sx={{ 
               display: "flex", 
               gap: 2, 
               alignItems: "center",
-              width: chatMessages.length === 0 ? "70%" : "100%",
+              width: "100%",
               transition: "width 0.5s ease-in-out",
               position: "relative",
               zIndex: 2,
@@ -380,6 +387,9 @@ const Chat = () => {
                 </IconButton>
               </Box>
             </Box>
+            <AnimatePresence mode="wait">
+              {chatMessages.length === 0 && <BottomMessage />}
+            </AnimatePresence>
           </Box>
         </motion.div>
       </Box>
