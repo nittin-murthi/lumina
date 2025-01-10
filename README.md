@@ -10,7 +10,7 @@
 
 ## Overview
 
-Lumina is a cutting-edge educational AI assistant that leverages advanced language models and modern web technologies to provide an interactive learning experience. Built with a robust MERN stack (MongoDB, Express.js, React, Node.js) and enhanced with TypeScript for type safety, the application incorporates state-of-the-art AI capabilities through LangChain and OpenAI. Live at https://lumina-2.onrender.com .
+Lumina is a cutting-edge educational AI assistant that leverages advanced language models and modern web technologies to provide an interactive learning experience. Built with a robust MERN stack (MongoDB, Express.js, React, Node.js) and enhanced with TypeScript for type safety, the application incorporates state-of-the-art AI capabilities through LangChain and OpenAI. Live at https://lumina-2.onrender.com (Might be slow to load due to Render's free tier).
 
 ## 🚀 Key Features
 
@@ -78,6 +78,48 @@ Lumina is a cutting-edge educational AI assistant that leverages advanced langua
 - **Version Control**: Git
 - **CI/CD**: Automated builds and deployments
 - **Monitoring**: Built-in error tracking
+
+## 🌟 Testing Infrastructure
+
+### Backend Testing (Python/pytest)
+- **Test Framework**: pytest with extensive fixtures
+- **Mock System**: Advanced mocking of external dependencies
+  - OpenAI API client mocking
+  - ChromaDB vector store mocking
+  - Environment variable isolation
+- **Test Coverage**:
+  - Unit tests for RAG operations
+  - Integration tests for AI endpoints
+  - Environment configuration tests
+  - Mock response validation
+
+### Frontend Testing (Vitest/React Testing Library)
+- **Test Runner**: Vitest with React plugin
+- **Environment**: JSDOM for browser simulation
+- **Coverage Reporting**: HTML, JSON, and text formats
+- **Test Organization**: 
+  - Component-level unit tests
+  - Integration tests for user flows
+  - Custom test setup and configuration
+- **Testing Patterns**:
+  - Component rendering validation
+  - User interaction simulation
+  - State management testing
+  - Async operation testing
+
+### Testing Best Practices
+- **Isolation**: Each test runs in isolation with clean environment
+- **Fixtures**: Reusable test configurations and mock data
+- **Continuous Integration**: Tests run on every pull request
+- **Coverage Goals**: Maintaining high test coverage
+- **Documentation**: Well-documented test cases and scenarios
+
+### Quality Assurance
+- **Static Analysis**: TypeScript strict mode
+- **Linting**: ESLint with custom rules
+- **Type Checking**: Full TypeScript coverage
+- **Automated Testing**: CI/CD pipeline integration
+- **Manual Testing**: User flow validation
 
 ## 🌟 Advanced Implementation Details
 
