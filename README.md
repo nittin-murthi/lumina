@@ -10,7 +10,7 @@
 
 ## Overview
 
-Lumina is a cutting-edge educational AI assistant that leverages advanced language models and modern web technologies to provide an interactive learning experience. Built with a robust MERN stack (MongoDB, Express.js, React, Node.js) and enhanced with TypeScript for type safety, the application incorporates state-of-the-art AI capabilities through LangChain and OpenAI.
+Lumina is a cutting-edge educational AI assistant that leverages advanced language models and modern web technologies to provide an interactive learning experience. Built with a robust MERN stack (MongoDB, Express.js, React, Node.js) and enhanced with TypeScript for type safety, the application incorporates state-of-the-art AI capabilities through LangChain and OpenAI. Live at https://lumina-2.onrender.com .
 
 ## 🚀 Key Features
 
