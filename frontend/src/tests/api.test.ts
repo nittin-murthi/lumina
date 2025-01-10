@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { sendMessage } from '/Users/nittinmurthi/Documents/VS_Code/Lumina-2/frontend/src/api/chat.ts';
+import { sendMessage } from '../api/chat';
 
 // Mock fetch
 const mockFetch = vi.fn();
