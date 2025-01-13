@@ -24,6 +24,13 @@ export async function checkPythonEnvironment(): Promise<boolean> {
 }
 
 export async function getRagResponse(message: string): Promise<RagResponse> {
+  console.log("Getting RAG response...");
+  // Use environment variables from .env file
+  process.env["LANGCHAIN_TRACING_V2"] = process.env.LANGCHAIN_TRACING_V2;
+  process.env["LANGCHAIN_PROJECT"] = process.env.LANGCHAIN_PROJECT;
+  process.env["LANGCHAIN_ENDPOINT"] = process.env.LANGCHAIN_ENDPOINT;
+  process.env["LANGCHAIN_API_KEY"] = process.env.LANGCHAIN_API_KEY;
+
   // Check Python environment before proceeding
   const isPythonReady = await checkPythonEnvironment();
   if (!isPythonReady) {
