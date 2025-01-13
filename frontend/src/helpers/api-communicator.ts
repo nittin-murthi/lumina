@@ -1,12 +1,22 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export const loginUser = async (email: string, password: string) => {
-  const res = await axios.post("/user/login", { email, password });
-  if (res.status !== 200) {
-    throw new Error("Unable to login");
+  console.log(`Attempting to login user: ${email}`);
+  try {
+    const res = await axios.post("/user/login", { email, password });
+    console.log(`Login response status: ${res.status}`);
+    if (res.status !== 200) {
+      console.error(`Login failed with status: ${res.status}`);
+      throw new Error("Unable to login");
+    }
+    const data = await res.data;
+    console.log("Login successful");
+    return data;
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    console.error("Login error:", axiosError.response?.data || axiosError.message);
+    throw error;
   }
-  const data = await res.data;
-  return data;
 };
 
 export const signupUser = async (
@@ -14,21 +24,41 @@ export const signupUser = async (
   email: string,
   password: string
 ) => {
-  const res = await axios.post("/user/signup", { name, email, password });
-  if (res.status !== 201) {
-    throw new Error("Unable to Signup");
+  console.log(`Attempting to signup user: ${email}`);
+  try {
+    const res = await axios.post("/user/signup", { name, email, password });
+    console.log(`Signup response status: ${res.status}`);
+    if (res.status !== 201) {
+      console.error(`Signup failed with status: ${res.status}`);
+      throw new Error("Unable to Signup");
+    }
+    const data = await res.data;
+    console.log("Signup successful");
+    return data;
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    console.error("Signup error:", axiosError.response?.data || axiosError.message);
+    throw error;
   }
-  const data = await res.data;
-  return data;
 };
 
 export const checkAuthStatus = async () => {
-  const res = await axios.get("/user/auth-status");
-  if (res.status !== 200) {
-    throw new Error("Unable to authenticate");
+  console.log("Checking authentication status...");
+  try {
+    const res = await axios.get("/user/auth-status");
+    console.log(`Auth status response: ${res.status}`);
+    if (res.status !== 200) {
+      console.error(`Auth check failed with status: ${res.status}`);
+      throw new Error("Unable to authenticate");
+    }
+    const data = await res.data;
+    console.log("Auth status check successful:", data);
+    return data;
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError;
+    console.error("Auth status check error:", axiosError.response?.data || axiosError.message);
+    throw error;
   }
-  const data = await res.data;
-  return data;
 };
 
 export const sendChatRequest = async (message: string, image?: File) => {

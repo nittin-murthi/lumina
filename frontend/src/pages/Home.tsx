@@ -141,7 +141,7 @@ const Home = () => {
               textAlign: "center",
             }}
           >
-            Learning circuits is hard.
+            Learning to code is hard.
             <br />
             Getting help is easy.
           </h1>
@@ -155,8 +155,7 @@ const Home = () => {
               textAlign: "center",
             }}
           >
-            Lumina provides 24/7 personalized ECE120 assistance, helping you master digital logic
-            and computer organization with instant, accurate support whenever you need it.
+            Lumina provides 24/7 personalized ECE120 programming assistance, helping you master programming with instant, accurate support whenever you need it.
           </p>
 
           <Box
@@ -232,7 +231,7 @@ const Home = () => {
           <FeatureSection
             icon={<FaBrain />}
             title="Context-Aware Learning"
-            description="Unlike ChatGPT, Lumina is specifically trained on ECE120 course materials, lecture notes, and past problems. Lumina ensures every response is accurate, relevant, and aligned with course objectives. No more generic AI responses!"
+            description="Unlike ChatGPT, Lumina is specifically trained on ECE120 programmming course materials, lecture notes, and past problems. Lumina ensures every response is accurate, relevant, and aligned with course objectives. No more generic AI responses!"
             color="#00fffc"
           />
           <FeatureSection
