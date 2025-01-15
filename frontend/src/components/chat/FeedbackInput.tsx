@@ -16,11 +16,22 @@ const FeedbackInput: React.FC<FeedbackInputProps> = ({ runId, onFeedbackSubmit }
 
   const handleSubmit = async () => {
     const normalizedScore = rating / 5;
-    await onFeedbackSubmit(normalizedScore, comment);
-    toast.success('Thank you for your feedback!');
-    setIsOpen(false);
-    setRating(3);
-    setComment('');
+    console.log('Submitting feedback:', {
+      runId,
+      normalizedScore,
+      comment,
+    });
+    try {
+      const result = await onFeedbackSubmit(normalizedScore, comment);
+      console.log('Feedback submission result:', result);
+      toast.success('Thank you for your feedback!');
+      setIsOpen(false);
+      setRating(3);
+      setComment('');
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      toast.error('Failed to submit feedback');
+    }
   };
 
   if (!runId) return null;
