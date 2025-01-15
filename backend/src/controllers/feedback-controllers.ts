@@ -16,7 +16,8 @@ export const submitFeedback = async (
       return res.status(500).json({ message: "LangChain API key is not configured" });
     }
 
-    const endpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
+    const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
+    const endpoint = `${baseEndpoint}/api/v1`;
 
     console.log('Using LangSmith endpoint:', endpoint);
     console.log('Request payload:', {
