@@ -22,33 +22,11 @@ export const submitFeedback = async (
       return res.status(500).json({ message: "Invalid LangSmith API key format" });
     }
 
-    const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
+    const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.langchain.com';
     console.log('Using API endpoint:', baseEndpoint);
     console.log('API Key prefix:', apiKey.substring(0, 8) + '...');
 
-    // Test authentication first
-    try {
-      const authTest = await axios.get(
-        `${baseEndpoint}/api/v1/projects`,
-        {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-          },
-        }
-      );
-      console.log('Authentication test successful');
-    } catch (authError: any) {
-      console.error('Authentication failed:', {
-        status: authError.response?.status,
-        data: authError.response?.data
-      });
-      return res.status(401).json({
-        message: "LangSmith authentication failed. Please check your API key.",
-        error: authError.response?.data
-      });
-    }
-
-    // If authentication successful, proceed with feedback submission
+    // Submit feedback directly without authentication test
     try {
       const response = await axios.post(
         `${baseEndpoint}/api/v1/feedback`,
