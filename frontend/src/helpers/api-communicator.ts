@@ -127,28 +127,26 @@ export const logoutUser = async () => {
 
 export const submitFeedback = async (runId: string, score: number, comment: string) => {
   try {
-    console.log('Creating LangSmith client...');
-    const client = new Client({
-      apiUrl: import.meta.env.VITE_LANGCHAIN_ENDPOINT,
-      apiKey: import.meta.env.VITE_LANGCHAIN_API_KEY,
-    });
-    
-    console.log('Submitting feedback to LangSmith:', {
+    console.log('Submitting feedback via backend:', {
       runId,
       score,
-      comment,
-      apiKey: import.meta.env.VITE_LANGCHAIN_API_KEY ? 'present' : 'missing',
-      endpoint: import.meta.env.VITE_LANGCHAIN_ENDPOINT
+      comment
     });
 
-    await client.createFeedback(runId, "user-rating", {
+    const res = await axios.post("/feedback/submit", {
+      runId,
       score,
-      comment,
+      comment
     });
+
+    if (res.status !== 200) {
+      throw new Error("Failed to submit feedback");
+    }
+
     console.log('Feedback submitted successfully');
     return { success: true };
   } catch (err: any) {
-    console.error('Detailed error submitting feedback:', {
+    console.error('Error submitting feedback:', {
       error: err,
       errorMessage: err?.message,
       errorStack: err?.stack,
