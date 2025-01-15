@@ -219,6 +219,7 @@ def get_rag_agent():
 
         def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], **kwargs: Any) -> None:
             self.run_id = kwargs.get("run_id")
+            print(f"Run ID: {self.run_id}")
             
     stdout_handler = StdOutCallbackHandler()
     run_id_handler = RunIDCallbackHandler()
