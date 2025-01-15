@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { Client } from "langsmith";
 
 export const submitFeedback = async (
   req: Request,
@@ -10,6 +9,8 @@ export const submitFeedback = async (
     const { runId, score, comment } = req.body;
     console.log('Submitting feedback via backend:', { runId, score, comment });
 
+    // Dynamically import langsmith
+    const { Client } = await import('langsmith');
     const client = new Client();
     await client.createFeedback(runId, "user-rating", {
       score,
