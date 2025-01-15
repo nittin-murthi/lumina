@@ -16,34 +16,39 @@ export const submitFeedback = async (
       return res.status(500).json({ message: "LangChain API key is not configured" });
     }
 
-    const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
+    // Validate API key format
+    if (!apiKey.startsWith('lsv2_')) {
+      console.error('Invalid API key format - should start with lsv2_');
+      return res.status(500).json({ message: "Invalid LangSmith API key format" });
+    }
 
-    // First, verify the run exists
+    const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
+    console.log('Using API endpoint:', baseEndpoint);
+    console.log('API Key prefix:', apiKey.substring(0, 8) + '...');
+
+    // Test authentication first
     try {
-      const runResponse = await axios.get(
-        `${baseEndpoint}/api/v1/runs/${runId}`,
+      const authTest = await axios.get(
+        `${baseEndpoint}/api/v1/projects`,
         {
           headers: {
             'Authorization': `Bearer ${apiKey}`,
           },
         }
       );
-      console.log('Run verification response:', {
-        status: runResponse.status,
-        data: runResponse.data
+      console.log('Authentication test successful');
+    } catch (authError: any) {
+      console.error('Authentication failed:', {
+        status: authError.response?.status,
+        data: authError.response?.data
       });
-    } catch (runError: any) {
-      console.error('Run verification failed:', {
-        status: runError.response?.status,
-        data: runError.response?.data
-      });
-      return res.status(404).json({
-        message: "Run not found in LangSmith",
-        error: runError.response?.data
+      return res.status(401).json({
+        message: "LangSmith authentication failed. Please check your API key.",
+        error: authError.response?.data
       });
     }
 
-    // If run exists, submit feedback
+    // If authentication successful, proceed with feedback submission
     try {
       const response = await axios.post(
         `${baseEndpoint}/api/v1/feedback`,
