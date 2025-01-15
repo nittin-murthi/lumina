@@ -19,6 +19,8 @@
     "concurrently": "^8.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
+    "langchain": "^0.3.11",
+    "langsmith": "^0.2.15",
     "nodemon": "^3.0.0",
     "openai": "^4.77.0",
     "ts-node": "^10.9.0",
