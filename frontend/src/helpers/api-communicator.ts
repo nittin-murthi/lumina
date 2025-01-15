@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { Client } from "langsmith";
 
 export const loginUser = async (email: string, password: string) => {
   console.log(`Attempting to login user: ${email}`);
@@ -122,4 +123,18 @@ export const logoutUser = async () => {
   }
   const data = await res.data;
   return data;
+};
+
+export const submitFeedback = async (runId: string, score: number, comment: string) => {
+  try {
+    const client = new Client();
+    await client.createFeedback(runId, "user-rating", {
+      score,
+      comment,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    return { success: false, error };
+  }
 };

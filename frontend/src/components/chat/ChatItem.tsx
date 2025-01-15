@@ -3,6 +3,8 @@ import { Box, Avatar, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import FeedbackInput from "./FeedbackInput";
+import { submitFeedback } from "../../helpers/api-communicator";
 
 interface ParsedBlock {
   type: 'text' | 'heading' | 'bullet';
@@ -235,14 +237,23 @@ type ChatItemProps = {
     data?: File;
   };
   isLoading?: boolean;
+  metadata?: {
+    last_run_id?: string;
+  };
 };
 
-const ChatItem = ({ content, role, image, isLoading }: ChatItemProps) => {
+const ChatItem = ({ content, role, image, isLoading, metadata }: ChatItemProps) => {
   const auth = useAuth();
 
   if (isLoading) {
     return <LoadingMessage />;
   }
+
+  const handleFeedbackSubmit = async (score: number, comment: string) => {
+    if (metadata?.last_run_id) {
+      await submitFeedback(metadata.last_run_id, score, comment);
+    }
+  };
 
   const renderContent = () => {
     if (Array.isArray(content)) {
@@ -326,6 +337,12 @@ const ChatItem = ({ content, role, image, isLoading }: ChatItemProps) => {
       </Avatar>
       <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
         {renderContent()}
+        {metadata?.last_run_id && (
+          <FeedbackInput
+            runId={metadata.last_run_id}
+            onFeedbackSubmit={handleFeedbackSubmit}
+          />
+        )}
       </Box>
     </Box>
   ) : (

@@ -20,6 +20,9 @@ type Message = {
     data?: File;
   };
   isLoading?: boolean;
+  metadata?: {
+    last_run_id?: string;
+  };
 };
 
 const Chat = () => {
@@ -97,7 +100,17 @@ const Chat = () => {
       const chatData = await sendChatRequest(content, selectedImage);
       console.log('API Response:', chatData);
       if (chatData.chats && Array.isArray(chatData.chats)) {
-        setChatMessages(chatData.chats);
+        // Update the last message with metadata
+        const updatedChats = chatData.chats.map((chat, index) => {
+          if (index === chatData.chats.length - 1 && chat.role === 'assistant') {
+            return {
+              ...chat,
+              metadata: chatData.metadata
+            };
+          }
+          return chat;
+        });
+        setChatMessages(updatedChats);
         setIsLoading(false);
         
         if (selectedImage) {
@@ -241,6 +254,7 @@ const Chat = () => {
                     role={chat.role}
                     image={chat.image}
                     isLoading={chat.isLoading || false}
+                    metadata={chat.metadata}
                   />
                 ))}
               </motion.div>
