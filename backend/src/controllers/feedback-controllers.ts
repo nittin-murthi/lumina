@@ -19,6 +19,13 @@ export const submitFeedback = async (
     const endpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com/api/v1';
 
     console.log('Using LangSmith endpoint:', endpoint);
+    console.log('Request payload:', {
+      run_id: runId,
+      key: "user-rating",
+      score: score,
+      comment: comment,
+      value: score,
+    });
     
     try {
       const response = await axios.post(
@@ -38,13 +45,25 @@ export const submitFeedback = async (
         }
       );
 
-      console.log('LangSmith API response:', response.status, response.data);
+      console.log('LangSmith API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers
+      });
       return res.status(200).json({ message: "Feedback submitted successfully" });
     } catch (apiError: any) {
-      console.error('LangSmith API error:', {
+      console.error('LangSmith API error details:', {
         status: apiError.response?.status,
+        statusText: apiError.response?.statusText,
         data: apiError.response?.data,
         message: apiError.message,
+        config: {
+          url: apiError.config?.url,
+          method: apiError.config?.method,
+          headers: apiError.config?.headers,
+          data: apiError.config?.data
+        }
       });
       return res.status(500).json({ 
         message: "Failed to submit feedback to LangSmith",
@@ -59,6 +78,10 @@ export const submitFeedback = async (
     console.error("Error in feedback controller:", {
       message: error.message,
       stack: error.stack,
+      name: error.name,
+      code: error.code,
+      type: error.type,
+      fullError: JSON.stringify(error, null, 2)
     });
     return res.status(500).json({ 
       message: "Internal server error in feedback controller",
