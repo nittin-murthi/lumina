@@ -19,6 +19,7 @@ type Message = {
     url: string;
     data?: File;
   };
+  isLoading?: boolean;
 };
 
 const Chat = () => {
@@ -33,6 +34,7 @@ const Chat = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current && shouldAutoScroll) {
@@ -87,34 +89,28 @@ const Chat = () => {
       toast.loading("Processing your image...", { id: "imageUpload" });
     }
 
-    console.log('New message being added:', message);
-    // Update messages with animation timing in mind
-    setTimeout(() => {
-      setChatMessages((prev) => {
-        console.log('Previous chat messages:', prev);
-        const newMessages = [...prev, message];
-        console.log('Updated chat messages:', newMessages);
-        return newMessages;
-      });
-    }, 100);
+    // Add user message and a temporary loading message
+    setChatMessages(prev => [...prev, message, { role: "assistant", content: "", isLoading: true }]);
+    setIsLoading(true);
 
     try {
       const chatData = await sendChatRequest(content, selectedImage);
       console.log('API Response:', chatData);
       if (chatData.chats && Array.isArray(chatData.chats)) {
-        setTimeout(() => {
-          console.log('Setting chat messages from API:', chatData.chats);
-          setChatMessages(chatData.chats);
-          // Only clear the image after we get a successful response
-          if (selectedImage) {
-            toast.success("Image uploaded successfully", { id: "imageUpload" });
-          }
-          setSelectedImage(null);
-          setImagePreview(null);
-          setIsUploading(false);
-        }, 100);
+        setChatMessages(chatData.chats);
+        setIsLoading(false);
+        
+        if (selectedImage) {
+          toast.success("Image uploaded successfully", { id: "imageUpload" });
+        }
+        setSelectedImage(null);
+        setImagePreview(null);
+        setIsUploading(false);
       } else {
         console.error("Invalid response format:", chatData);
+        // Remove the loading message on error
+        setChatMessages(prev => prev.slice(0, -1));
+        setIsLoading(false);
         if (selectedImage) {
           toast.error("Failed to process image", { id: "imageUpload" });
         }
@@ -122,6 +118,9 @@ const Chat = () => {
       }
     } catch (error) {
       console.error("API Error Details:", error);
+      // Remove the loading message on error
+      setChatMessages(prev => prev.slice(0, -1));
+      setIsLoading(false);
       if (selectedImage) {
         toast.error("Failed to upload image", { id: "imageUpload" });
       } else {
@@ -241,6 +240,7 @@ const Chat = () => {
                     content={chat.content}
                     role={chat.role}
                     image={chat.image}
+                    isLoading={chat.isLoading || false}
                   />
                 ))}
               </motion.div>

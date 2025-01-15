@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Box, Avatar, Typography } from "@mui/material";
+import { Box, Avatar, Typography, CircularProgress } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { coldarkDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -147,6 +147,86 @@ function renderBlock(block: ParsedBlock, role: string) {
   }
 }
 
+const LoadingMessage = () => (
+  <Box
+    sx={{
+      display: "flex",
+      p: "10px 24px",
+      bgcolor: "rgba(0, 77, 86, 0.1)",
+      gap: 2,
+      borderRadius: 2,
+      my: 0.75,
+      maxWidth: "85%",
+      alignSelf: "flex-start",
+      backdropFilter: "blur(10px)",
+      border: "1px solid rgba(0, 77, 86, 0.2)",
+      width: "100%",
+      textAlign: "left",
+    }}
+  >
+    <Avatar sx={{ ml: "0", width: 32, height: 32 }}>
+      <img src="pngtree-shine-idea-lightbulb-in-yellow-and-gray-color-png-image_6579931.png" alt="openai" width={"24px"} />
+    </Avatar>
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        alignItems: 'center',
+        gap: 2
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 1,
+        }}
+      >
+        <span className="dot" style={{
+          width: '8px',
+          height: '8px',
+          backgroundColor: '#00fffc',
+          borderRadius: '50%',
+          animation: 'pulse 1.5s infinite',
+          animationDelay: '0s',
+        }} />
+        <span className="dot" style={{
+          width: '8px',
+          height: '8px',
+          backgroundColor: '#00fffc',
+          borderRadius: '50%',
+          animation: 'pulse 1.5s infinite',
+          animationDelay: '0.2s',
+        }} />
+        <span className="dot" style={{
+          width: '8px',
+          height: '8px',
+          backgroundColor: '#00fffc',
+          borderRadius: '50%',
+          animation: 'pulse 1.5s infinite',
+          animationDelay: '0.4s',
+        }} />
+      </Box>
+      <style>
+        {`
+          @keyframes pulse {
+            0% {
+              transform: scale(0.8);
+              opacity: 0.5;
+            }
+            50% {
+              transform: scale(1.2);
+              opacity: 1;
+            }
+            100% {
+              transform: scale(0.8);
+              opacity: 0.5;
+            }
+          }
+        `}
+      </style>
+    </Box>
+  </Box>
+);
+
 type ChatItemProps = {
   content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
   role: "user" | "assistant";
@@ -154,10 +234,15 @@ type ChatItemProps = {
     url: string;
     data?: File;
   };
+  isLoading?: boolean;
 };
 
-const ChatItem = ({ content, role, image }: ChatItemProps) => {
+const ChatItem = ({ content, role, image, isLoading }: ChatItemProps) => {
   const auth = useAuth();
+
+  if (isLoading) {
+    return <LoadingMessage />;
+  }
 
   const renderContent = () => {
     if (Array.isArray(content)) {
