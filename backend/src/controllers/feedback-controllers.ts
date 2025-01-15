@@ -17,25 +17,43 @@ export const submitFeedback = async (
     }
 
     const baseEndpoint = process.env.LANGCHAIN_ENDPOINT || 'https://api.smith.langchain.com';
-    const endpoint = `${baseEndpoint}/api/v1`;
 
-    console.log('Using LangSmith endpoint:', endpoint);
-    console.log('Request payload:', {
-      run_id: runId,
-      key: "user-rating",
-      score: score,
-      comment: comment,
-      value: score,
-    });
-    
+    // First, verify the run exists
+    try {
+      const runResponse = await axios.get(
+        `${baseEndpoint}/api/v1/runs/${runId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+          },
+        }
+      );
+      console.log('Run verification response:', {
+        status: runResponse.status,
+        data: runResponse.data
+      });
+    } catch (runError: any) {
+      console.error('Run verification failed:', {
+        status: runError.response?.status,
+        data: runError.response?.data
+      });
+      return res.status(404).json({
+        message: "Run not found in LangSmith",
+        error: runError.response?.data
+      });
+    }
+
+    // If run exists, submit feedback
     try {
       const response = await axios.post(
-        `${endpoint}/runs/${runId}/feedback`,
+        `${baseEndpoint}/api/v1/feedback`,
         {
+          run_id: runId,
           key: "user-rating",
           score: score,
           comment: comment,
           value: score,
+          feedback_source: "user"
         },
         {
           headers: {
@@ -48,40 +66,28 @@ export const submitFeedback = async (
       console.log('LangSmith API response:', {
         status: response.status,
         statusText: response.statusText,
-        data: response.data,
-        headers: response.headers
+        data: response.data
       });
-      return res.status(200).json({ message: "Feedback submitted successfully" });
+      return res.status(200).json({ 
+        message: "Feedback submitted successfully",
+        data: response.data
+      });
     } catch (apiError: any) {
       console.error('LangSmith API error details:', {
         status: apiError.response?.status,
         statusText: apiError.response?.statusText,
         data: apiError.response?.data,
-        message: apiError.message,
-        config: {
-          url: apiError.config?.url,
-          method: apiError.config?.method,
-          headers: apiError.config?.headers,
-          data: apiError.config?.data
-        }
+        message: apiError.message
       });
-      return res.status(500).json({ 
+      return res.status(apiError.response?.status || 500).json({ 
         message: "Failed to submit feedback to LangSmith",
-        error: {
-          status: apiError.response?.status,
-          data: apiError.response?.data,
-          message: apiError.message,
-        }
+        error: apiError.response?.data || apiError.message
       });
     }
   } catch (error: any) {
     console.error("Error in feedback controller:", {
       message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code,
-      type: error.type,
-      fullError: JSON.stringify(error, null, 2)
+      stack: error.stack
     });
     return res.status(500).json({ 
       message: "Internal server error in feedback controller",
