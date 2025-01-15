@@ -1,5 +1,4 @@
 import axios, { AxiosError } from "axios";
-import { Client } from "langsmith";
 
 export const loginUser = async (email: string, password: string) => {
   console.log(`Attempting to login user: ${email}`);
