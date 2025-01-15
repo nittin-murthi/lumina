@@ -87,15 +87,23 @@ const Chat = () => {
       toast.loading("Processing your image...", { id: "imageUpload" });
     }
 
+    console.log('New message being added:', message);
     // Update messages with animation timing in mind
     setTimeout(() => {
-      setChatMessages((prev) => [...prev, message]);
+      setChatMessages((prev) => {
+        console.log('Previous chat messages:', prev);
+        const newMessages = [...prev, message];
+        console.log('Updated chat messages:', newMessages);
+        return newMessages;
+      });
     }, 100);
 
     try {
       const chatData = await sendChatRequest(content, selectedImage);
+      console.log('API Response:', chatData);
       if (chatData.chats && Array.isArray(chatData.chats)) {
         setTimeout(() => {
+          console.log('Setting chat messages from API:', chatData.chats);
           setChatMessages(chatData.chats);
           // Only clear the image after we get a successful response
           if (selectedImage) {

@@ -11,18 +11,32 @@ interface ParsedBlock {
 }
 
 function cleanMessage(content: string): string {
-  // Remove agent execution metadata and asterisks
-  const cleanedContent = content
-    .replace(/\[1m> .*?\[0m/g, '')  // Remove execution markers
-    .replace(/\[[\d;]+m/g, '')  // Remove ANSI color codes
-    .replace(/Entering new AgentExecutor chain\.\.\./g, '')  // Remove chain entry message
-    .replace(/Finished chain\./g, '')  // Remove chain completion message
-    .replace(/\*\*/g, '')  // Remove all asterisks
-    .trim();  // Remove extra whitespace
+  // First remove all ANSI codes and metadata markers
+  let cleanedContent = content
+    .replace(/\[\d+(?:;\d+)*m/g, '')  // Remove all ANSI color codes
+    .replace(/\[1m>.*?\[0m/g, '')     // Remove execution markers
+    .trim();
+    
+  // Then remove the chain messages if they exist
+  if (cleanedContent.includes('Entering new AgentExecutor chain...')) {
+    const parts = cleanedContent.split('Finished chain.');
+    // Take the last part if there are chain messages
+    cleanedContent = parts[parts.length - 1];
+  }
+  
+  // Finally clean up any remaining formatting
+  cleanedContent = cleanedContent
+    .replace(/Entering new AgentExecutor chain\.\.\./g, '')
+    .replace(/Finished chain\./g, '')
+    .replace(/\*\*/g, '')
+    .trim();
+  
+  console.log('After cleanMessage:', cleanedContent);
   return cleanedContent;
 }
 
 function parseContent(text: string): ParsedBlock[] {
+  console.log('parseContent input:', text);
   // Clean the message first
   const cleanedText = cleanMessage(text);
   const lines = cleanedText.split('\n');
@@ -79,10 +93,12 @@ function parseContent(text: string): ParsedBlock[] {
     blocks.push({ type: 'text', content: currentText.trim() });
   }
 
+  console.log('parseContent output blocks:', blocks);
   return blocks;
 }
 
 function renderBlock(block: ParsedBlock, role: string) {
+  console.log('renderBlock input:', { block, role });
   switch (block.type) {
     case 'heading':
       return (
