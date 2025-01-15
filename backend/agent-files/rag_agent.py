@@ -96,7 +96,7 @@ retriever_course_logistics = db_course_logistics.as_retriever(**retriever_kwargs
 #     return f"Flowchart created and saved at: {flowchart_path}"
 
 # Initialize tools
-stackexchange = StackExchangeAPIWrapper(max_results=3, result_separator='||')
+#stackexchange = StackExchangeAPIWrapper(max_results=3, result_separator='||')
 
 tools = [
     create_retriever_tool(
@@ -129,11 +129,11 @@ tools = [
         "search_course_name",
         "Basic course name information.",
     ),
-    Tool(
-        name="search_stackexchange",
-        func=stackexchange.run,
-        description="Search StackExchange for programming questions and best practices."
-    ),
+    # Tool(
+    #     name="search_stackexchange",
+    #     func=stackexchange.run,
+    #     description="Search StackExchange for programming questions and best practices."
+    # ),
     # Tool(
     #     name="create_flowchart",
     #     func=flowchart_tool,
