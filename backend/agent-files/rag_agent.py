@@ -232,8 +232,11 @@ def get_rag_agent():
         verbose=False,
         memory_key='chat_history',
         callback_manager=[stdout_handler, run_id_handler],
-        max_iterations=4,  # Added to prevent infinite loops
-        handle_parsing_errors=True  # Added to handle parsing errors gracefully
+        max_iterations=4,
+        handle_parsing_errors=True
     )
+    
+    # Add the run ID handler as an attribute to access it later
+    agent._run_id_handler = run_id_handler
         
     return agent

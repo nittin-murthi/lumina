@@ -40,6 +40,7 @@ from rag_agent import get_rag_agent
 
 agent = get_rag_agent()
 response = agent.invoke({"input": """${message}"""})
+print("RUNID_START" + str(agent._run_id_handler.run_id) + "RUNID_END")
 print(response["output"])
 `;
         const pythonProcess = (0, child_process_1.spawn)('python3', ['-c', pythonScript], {
@@ -47,8 +48,18 @@ print(response["output"])
         });
         let outputData = '';
         let errorData = '';
+        let runId = '';
         pythonProcess.stdout.on('data', (data) => {
-            outputData += data.toString();
+            const dataStr = data.toString();
+            // Extract run ID if present
+            const runIdMatch = dataStr.match(/RUNID_START(.+?)RUNID_END/);
+            if (runIdMatch) {
+                runId = runIdMatch[1];
+                outputData += dataStr.replace(/RUNID_START(.+?)RUNID_END\n/, '');
+            }
+            else {
+                outputData += dataStr;
+            }
         });
         pythonProcess.stderr.on('data', (data) => {
             errorData += data.toString();
@@ -58,7 +69,7 @@ print(response["output"])
                 resolve({ output: '', error: errorData });
             }
             else {
-                resolve({ output: outputData.trim() });
+                resolve({ output: outputData.trim(), run_id: runId });
             }
         });
         pythonProcess.on('error', (error) => {

@@ -106,18 +106,23 @@ const generateChatCompletion = async (req, res, next) => {
                 return res.status(500).json({ message: "RAG agent error", error: ragResponse.error });
             }
             assistantResponse = ragResponse.output;
+            // Save the conversation to user's chats
+            user.chats.push({
+                role: "user",
+                content: messageContent
+            });
+            user.chats.push({
+                role: "assistant",
+                content: assistantResponse
+            });
+            await user.save();
+            return res.status(200).json({
+                chats: user.chats,
+                metadata: {
+                    last_run_id: ragResponse.run_id
+                }
+            });
         }
-        // Save the conversation to user's chats
-        user.chats.push({
-            role: "user",
-            content: messageContent
-        });
-        user.chats.push({
-            role: "assistant",
-            content: assistantResponse
-        });
-        await user.save();
-        return res.status(200).json({ chats: user.chats });
     }
     catch (error) {
         console.log(error);
