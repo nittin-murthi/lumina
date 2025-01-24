@@ -11,6 +11,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const cors_1 = __importDefault(require("cors"));
 const rag_service_1 = require("./services/rag-service");
 const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 console.log("Starting server initialization...");
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
@@ -40,16 +41,29 @@ console.log("API routes mounted at /api/v1");
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
     console.log("Production mode detected, setting up static file serving...");
-    const frontendBuildPath = path_1.default.resolve(process.cwd(), '../frontend/dist');
+    const frontendBuildPath = path_1.default.join(process.cwd(), '..', 'frontend', 'dist');
     console.log(`Frontend build path: ${frontendBuildPath}`);
+    // Serve static files
     app.use(express_1.default.static(frontendBuildPath));
     console.log("Static file middleware configured");
-    // Serve index.html for all routes except /api
+    // Serve index.html for all non-API routes
     app.get('*', (req, res) => {
         console.log(`Received request for: ${req.url}`);
         if (!req.url.startsWith('/api')) {
             console.log(`Serving index.html for non-API route: ${req.url}`);
-            res.sendFile(path_1.default.join(frontendBuildPath, 'index.html'));
+            try {
+                if (fs_1.default.existsSync(path_1.default.join(frontendBuildPath, 'index.html'))) {
+                    res.sendFile(path_1.default.join(frontendBuildPath, 'index.html'));
+                }
+                else {
+                    console.error('index.html not found in build directory');
+                    res.status(404).send('Frontend build not found');
+                }
+            }
+            catch (err) {
+                console.error('Error serving index.html:', err);
+                res.status(500).send('Error serving frontend');
+            }
         }
     });
     console.log("Catch-all route handler configured for SPA");
