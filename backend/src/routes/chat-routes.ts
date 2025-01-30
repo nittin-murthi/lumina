@@ -1,23 +1,26 @@
 import { Router } from "express";
-import { verifyToken } from "../utils/token-manager.js";
-import { chatCompletionValidator, validate } from "../utils/validators.js";
+import { verifySession } from "../middlewares/session-auth";
 import {
-  deleteChats,
   generateChatCompletion,
   sendChatsToUser,
-  upload
-} from "../controllers/chat-controllers.js";
+  deleteChats,
+  upload,
+} from "../controllers/chat-controllers";
 
-//Protected API
 const chatRoutes = Router();
+
+// 1) Create a new chat message, optionally with an image
 chatRoutes.post(
   "/new",
-  verifyToken,
-  upload.single('image'),
-  validate(chatCompletionValidator),
+  verifySession,
+  upload.single("image"),
   generateChatCompletion
 );
-chatRoutes.get("/all-chats", verifyToken, sendChatsToUser);
-chatRoutes.delete("/delete", verifyToken, deleteChats);
+
+// 2) Get all chats for the user’s current session
+chatRoutes.get("/all-chats", verifySession, sendChatsToUser);
+
+// 3) Delete all chats for the user’s current session
+chatRoutes.delete("/delete", verifySession, deleteChats);
 
 export default chatRoutes;

@@ -1,36 +1,13 @@
-import mongoose from "mongoose";
-import { randomUUID } from "crypto";
+//models/User.ts
 
-const chatSchema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: randomUUID(),
-    },
-    role: {
-        type: String,
-        required: true,
-    },
-    content: {
-        type: mongoose.Schema.Types.Mixed,
-        required: true,
-    },
-});
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    password: {
-        type: String,
-        required: true,
-    },
-    chats: [chatSchema],
-});
-
-export default mongoose.model("User", userSchema);
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    session_id: { type: String, default: null },
+  }, { timestamps: true });
+  
+  export default mongoose.model("User", userSchema);
+  

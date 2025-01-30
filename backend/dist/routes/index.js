@@ -4,12 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const user_routes_js_1 = __importDefault(require("./user-routes.js"));
-const chat_routes_js_1 = __importDefault(require("./chat-routes.js"));
-const feedback_routes_js_1 = __importDefault(require("./feedback-routes.js"));
+const user_routes_1 = __importDefault(require("./user-routes"));
+const chat_routes_1 = __importDefault(require("./chat-routes"));
+const feedback_routes_1 = __importDefault(require("./feedback-routes"));
 const appRouter = (0, express_1.Router)();
-appRouter.use("/user", user_routes_js_1.default);
-appRouter.use("/chat", chat_routes_js_1.default);
-appRouter.use("/feedback", feedback_routes_js_1.default);
+// Mount each route group under its own path
+appRouter.use("/user", user_routes_1.default);
+appRouter.use("/chat", chat_routes_1.default);
+appRouter.use("/feedback", feedback_routes_1.default);
 exports.default = appRouter;
 //# sourceMappingURL=index.js.map

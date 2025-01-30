@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { verifyToken } from "../utils/token-manager.js";
-import { submitFeedback } from "../controllers/feedback-controllers.js";
+import { verifySession } from "../middlewares/session-auth";
+import { submitFeedback } from "../controllers/feedback-controllers";
 
 const feedbackRoutes = Router();
-feedbackRoutes.post("/submit", verifyToken, submitFeedback);
 
-export default feedbackRoutes; 
+// Submit user feedback
+feedbackRoutes.post("/submit", verifySession, submitFeedback);
+
+export default feedbackRoutes;
